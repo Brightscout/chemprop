@@ -40,7 +40,7 @@ def check_not_demo(func: Callable) -> Callable:
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if app.config['DEMO']:
-            return redirect(url_for('home'))
+            return redirect(url_for('predict'))
         return func(*args, **kwargs)
 
     return decorated_function
@@ -137,7 +137,7 @@ def format_float_list(array: List[float], precision: int = 4) -> List[str]:
     return [format_float(f, precision) for f in array]
 
 
-@app.route('/receiver', methods=['POST'])
+#@app.route('/receiver', methods=['POST'])
 @check_not_demo
 def receiver():
     """Receiver monitoring the progress of training."""
@@ -147,10 +147,10 @@ def receiver():
 @app.route('/')
 def home():
     """Renders the home page."""
-    return render_template('home.html', users=db.get_all_users())
+    return redirect(url_for('predict'))
 
 
-@app.route('/create_user', methods=['GET', 'POST'])
+#@app.route('/create_user', methods=['GET', 'POST'])
 @check_not_demo
 def create_user():
     """
@@ -182,7 +182,7 @@ def render_train(**kwargs):
                            **kwargs)
 
 
-@app.route('/train', methods=['GET', 'POST'])
+#@app.route('/train', methods=['GET', 'POST'])
 @check_not_demo
 def train():
     """Renders the train page and performs training if request method is POST."""
@@ -394,10 +394,10 @@ def predict():
 @app.route('/download_predictions')
 def download_predictions():
     """Downloads predictions as a .csv file."""
-    return send_from_directory(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME'], as_attachment=True, cache_timeout=-1)
+    return send_from_directory(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME'], as_attachment=True)
 
 
-@app.route('/data')
+#@app.route('/data')
 @check_not_demo
 def data():
     """Renders the data page."""
@@ -410,7 +410,7 @@ def data():
                            users=db.get_all_users())
 
 
-@app.route('/data/upload/<string:return_page>', methods=['POST'])
+#@app.route('/data/upload/<string:return_page>', methods=['POST'])
 @check_not_demo
 def upload_data(return_page: str):
     """
@@ -452,7 +452,7 @@ def upload_data(return_page: str):
     return redirect(url_for(return_page, data_upload_warnings=warnings, data_upload_errors=errors))
 
 
-@app.route('/data/download/<int:dataset>')
+#@app.route('/data/download/<int:dataset>')
 @check_not_demo
 def download_data(dataset: int):
     """
@@ -460,10 +460,10 @@ def download_data(dataset: int):
 
     :param dataset: The id of the dataset to download.
     """
-    return send_from_directory(app.config['DATA_FOLDER'], f'{dataset}.csv', as_attachment=True, cache_timeout=-1)
+    return send_from_directory(app.config['DATA_FOLDER'], f'{dataset}.csv', as_attachment=True)
 
 
-@app.route('/data/delete/<int:dataset>')
+#@app.route('/data/delete/<int:dataset>')
 @check_not_demo
 def delete_data(dataset: int):
     """
@@ -476,7 +476,7 @@ def delete_data(dataset: int):
     return redirect(url_for('data'))
 
 
-@app.route('/checkpoints')
+#@app.route('/checkpoints')
 @check_not_demo
 def checkpoints():
     """Renders the checkpoints page."""
@@ -489,7 +489,7 @@ def checkpoints():
                            users=db.get_all_users())
 
 
-@app.route('/checkpoints/upload/<string:return_page>', methods=['POST'])
+#@app.route('/checkpoints/upload/<string:return_page>', methods=['POST'])
 @check_not_demo
 def upload_checkpoint(return_page: str):
     """
@@ -559,7 +559,7 @@ def upload_checkpoint(return_page: str):
     return redirect(url_for(return_page, checkpoint_upload_warnings=warnings, checkpoint_upload_errors=errors))
 
 
-@app.route('/checkpoints/download/<int:checkpoint>')
+#@app.route('/checkpoints/download/<int:checkpoint>')
 @check_not_demo
 def download_checkpoint(checkpoint: int):
     """
@@ -588,7 +588,7 @@ def download_checkpoint(checkpoint: int):
     )
 
 
-@app.route('/checkpoints/delete/<int:checkpoint>')
+#@app.route('/checkpoints/delete/<int:checkpoint>')
 @check_not_demo
 def delete_checkpoint(checkpoint: int):
     """
