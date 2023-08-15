@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-    {% if not config['DEMO'] %}
+    {% if not config['DEMO'] and config['ALLOW_CHECKPOINT_UPLOAD'] %}
     {{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}
     <hr>
 
@@ -14,16 +14,16 @@
     {% endif %}
 
     <form enctype="multipart/form-data" method="POST">
-        <!--Model checkpoint selector-->
-        <h5>Model checkpoint</h5>
-        <select name="checkpointName" required>
-            {% for checkpoint in checkpoints %}
-                <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>
-            {% endfor %}
-        </select>
-
-        <br>
-        <br>
+{#        <!--Model checkpoint selector-->#}
+{#        <h5>Model checkpoint</h5>#}
+{#        <select name="checkpointName" required>#}
+{#            {% for checkpoint in checkpoints %}#}
+{#                <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>#}
+{#            {% endfor %}#}
+{#        </select>#}
+{##}
+{#        <br>#}
+{#        <br>#}
 
         <!--SMILES upload type selector-->
         <div class="btn-group" id="inputSelect" data-toggle="buttons">

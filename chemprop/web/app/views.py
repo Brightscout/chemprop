@@ -11,20 +11,33 @@ from typing import Callable, List, Tuple
 import multiprocessing as mp
 import zipfile
 
-from flask import json, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
 import numpy as np
+import pandas as pd
+from chemfunc.molecular_fingerprints import compute_fingerprints
+from flask import json, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
 from rdkit import Chem
+from tqdm import tqdm
 from werkzeug.utils import secure_filename
 
 from chemprop.web.app import app, db
+from chemprop.web.app.models import get_models_dict
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
-from chemprop.args import PredictArgs, TrainArgs
+from chemprop.args import TrainArgs
 from chemprop.constants import MODEL_FILE_NAME, TRAIN_LOGGER_NAME
-from chemprop.data import get_data, get_header, get_smiles, get_task_names, validate_data
-from chemprop.train import make_predictions, run_training
-from chemprop.utils import create_logger, load_task_names, load_args
+from chemprop.data import (
+    get_data,
+    get_header,
+    get_smiles,
+    get_task_names,
+    MoleculeDataLoader,
+    MoleculeDatapoint,
+    MoleculeDataset,
+    validate_data
+)
+from chemprop.train import run_training, predict as chemprop_predict
+from chemprop.utils import create_logger, load_args
 
 TRAINING = 0
 PROGRESS = mp.Value('d', 0.0)
@@ -40,6 +53,22 @@ def check_not_demo(func: Callable) -> Callable:
     @wraps(func)
     def decorated_function(*args, **kwargs):
         if app.config['DEMO']:
+            return redirect(url_for('predict'))
+        return func(*args, **kwargs)
+
+    return decorated_function
+
+
+def check_allow_checkpoint_upload(func: Callable) -> Callable:
+    """
+    View wrapper, which will redirect request to site
+    homepage if app is run without allowing checkpoint upload.
+    :param func: A view which performs sensitive behavior.
+    :return: A view with behavior adjusted based on ALLOW_CHECKPOINT_UPLOAD flag.
+    """
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if not app.config['ALLOW_CHECKPOINT_UPLOAD']:
             return redirect(url_for('predict'))
         return func(*args, **kwargs)
 
@@ -304,14 +333,105 @@ def render_predict(**kwargs):
                            **kwargs)
 
 
+def predict_all_models(
+        smiles: list[str],
+        num_workers: int = 0
+) -> tuple[list[str], list[list[float]]]:
+    """Make prediction with all the loaded models.
+
+    TODO: Support GPU prediction.
+    TODO: Handle invalid SMILES.
+
+    :param smiles: A list of SMILES.
+    :param num_workers: The number of workers for parallel data loading.
+    :return: A tuple containing a list of task names and a list of predictions (num_molecules, num_tasks).
+    """
+    # Get models dict with models and association information
+    models_dict = get_models_dict()
+
+    # Determine fingerprints use
+    uses_fingerprints_set = {model_dict["uses_fingerprints"] for model_dict in models_dict.values()}
+    any_fingerprints_use = any(uses_fingerprints_set)
+    all_fingerprints_use = all(uses_fingerprints_set)
+
+    # Build data loader without fingerprints
+    if not all_fingerprints_use:
+        data_loader_without_fingerprints = MoleculeDataLoader(
+            dataset=MoleculeDataset([
+                MoleculeDatapoint(
+                    smiles=[smile],
+                ) for smile in smiles
+            ]),
+            num_workers=num_workers,
+            shuffle=False
+        )
+    else:
+        data_loader_without_fingerprints = None
+
+    # Build dataloader with fingerprints
+    if any_fingerprints_use:
+        # TODO: Remove assumption of RDKit fingerprints
+        fingerprints = compute_fingerprints(smiles, fingerprint_type='rdkit')
+
+        data_loader_with_fingerprints = MoleculeDataLoader(
+            dataset=MoleculeDataset(
+                [
+                    MoleculeDatapoint(
+                        smiles=[smile],
+                        features=fingerprint
+                    )
+                    for smile, fingerprint in zip(smiles, fingerprints)
+                ]
+            ),
+            num_workers=num_workers,
+            shuffle=False,
+        )
+    else:
+        data_loader_with_fingerprints = None
+
+    # Initialize lists to contain task names and predictions
+    all_task_names = []
+    all_preds = []
+
+    # Loop through each ensemble and make predictions
+    for model_name, model_dict in tqdm(models_dict.items(), desc='model ensembles'):
+        # Get task names
+        all_task_names += model_dict['task_names']
+
+        # Select data loader based on features use
+        if model_dict["uses_fingerprints"]:
+            data_loader = data_loader_with_fingerprints
+        else:
+            data_loader = data_loader_without_fingerprints
+
+        # Make predictions
+        preds = [
+            chemprop_predict(model=model, data_loader=data_loader)
+            for model in tqdm(model_dict['models'], desc='individual models')
+        ]
+
+        # Scale predictions if needed (for regression)
+        if model_dict['scalers'][0] is not None:
+            preds = [
+                scaler.inverse_transform(pred).astype(float)
+                for scaler, pred in zip(model_dict['scalers'], preds)
+            ]
+
+        # Average ensemble predictions
+        preds = np.mean(preds, axis=0).transpose()  # (num_tasks, num_molecules)
+        all_preds += preds.tolist()
+
+    # Transpose preds
+    all_preds: list[list[float]] = np.array(all_preds).transpose().tolist()  # (num_molecules, num_tasks)
+
+    return all_task_names, all_preds
+
+
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
     """Renders the predict page and makes predictions if the method is POST."""
     if request.method == 'GET':
         return render_predict()
-
-    # Get arguments
-    ckpt_id = request.form['checkpointName']
 
     if request.form['textSmiles'] != '':
         smiles = request.form['textSmiles'].split()
@@ -331,48 +451,30 @@ def predict():
         # Get remaining smiles
         smiles.extend(get_smiles(data_path))
 
-    smiles = [[s] for s in smiles]
+        # Delete data
+        os.remove(data_path)
 
-    models = db.get_models(ckpt_id)
-    model_paths = [os.path.join(app.config['CHECKPOINT_FOLDER'], f'{model["id"]}.pt') for model in models]
-
-    task_names = load_task_names(model_paths[0])
+    # Make predictions
+    task_names, preds = predict_all_models(smiles=smiles)
     num_tasks = len(task_names)
-    gpu = request.form.get('gpu')
-    train_args = load_args(model_paths[0])
 
-    # Build arguments
-    arguments = [
-        '--test_path', 'None',
-        '--preds_path', os.path.join(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME']),
-        '--checkpoint_paths', *model_paths
+    # TODO: Delete predictions when no longer needed
+    # TODO: Check if this works for multiple users at once when using same predictions filename
+    # Save predictions
+    preds_dicts = [
+        {
+            "smiles": smile,
+            **{
+                task_name: preds[smiles_index][task_index]
+                for task_index, task_name in enumerate(task_names)
+            }
+        }
+        for smiles_index, smile in enumerate(smiles)
     ]
+    preds_df = pd.DataFrame(preds_dicts)
+    preds_df.to_csv(os.path.join(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME']))
 
-    if gpu is not None:
-        if gpu == 'None':
-            arguments.append('--no_cuda')
-        else:
-            arguments += ['--gpu', gpu]
-
-    # Handle additional features
-    if train_args.features_path is not None:
-        # TODO: make it possible to specify the features generator if trained using features_path
-        arguments += [
-            '--features_generator', 'rdkit_2d_normalized',
-            '--no_features_scaling'
-        ]
-    elif train_args.features_generator is not None:
-        arguments += ['--features_generator', *train_args.features_generator]
-
-        if not train_args.features_scaling:
-            arguments.append('--no_features_scaling')
-
-    # Parse arguments
-    args = PredictArgs().parse_args(arguments)
-
-    # Run predictions
-    preds = make_predictions(args=args, smiles=smiles, return_uncertainty=False)
-
+    # Handle invalid SMILES
     if all(p is None for p in preds):
         return render_predict(errors=['All SMILES are invalid'])
 
@@ -385,7 +487,7 @@ def predict():
                           num_smiles=min(10, len(smiles)),
                           show_more=max(0, len(smiles)-10),
                           task_names=task_names,
-                          num_tasks=len(task_names),
+                          num_tasks=num_tasks,
                           preds=preds,
                           warnings=["List contains invalid SMILES strings"] if None in preds else None,
                           errors=["No SMILES strings given"] if len(preds) == 0 else None)
@@ -489,8 +591,9 @@ def checkpoints():
                            users=db.get_all_users())
 
 
-#@app.route('/checkpoints/upload/<string:return_page>', methods=['POST'])
+@app.route('/checkpoints/upload/<string:return_page>', methods=['POST'])
 @check_not_demo
+@check_allow_checkpoint_upload
 def upload_checkpoint(return_page: str):
     """
     Uploads a checkpoint .pt file.
