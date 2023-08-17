@@ -21,6 +21,7 @@ def set_root_folder(app: Flask, root_folder: str = None, create_folders: bool = 
         app.config['CHECKPOINT_FOLDER'] = os.path.join(app.config['ROOT_FOLDER'], 'app/web_checkpoints')
         app.config['TEMP_FOLDER'] = os.path.join(app.config['ROOT_FOLDER'], 'app/temp')
         app.config['DB_PATH'] = os.path.join(app.config['ROOT_FOLDER'], app.config['DB_FILENAME'])
+        app.config['DRUGBANK_PATH'] = os.path.join(app.config['ROOT_FOLDER'], app.config['DRUGBANK_FILENAME'])
 
     # Create folders
     if create_folders:

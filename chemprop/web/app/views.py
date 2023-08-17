@@ -20,7 +20,7 @@ from tqdm import tqdm
 from werkzeug.utils import secure_filename
 
 from chemprop.web.app import app, db
-from chemprop.web.app.models import get_models_dict
+from chemprop.web.app.models import compute_drugbank_percentile, get_models_dict
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
@@ -456,7 +456,7 @@ def predict():
         os.remove(data_path)
 
     # Error if too many molecules
-    if len(smiles) > app.config['MAX_MOLECULES']:
+    if app.config['MAX_MOLECULES'] is not None and len(smiles) > app.config['MAX_MOLECULES']:
         return render_predict(errors=[f'Received too many molecules. '
                                       f'Maximum number of molecules is {app.config["MAX_MOLECULES"]:,}.'])
 
@@ -464,19 +464,26 @@ def predict():
     task_names, preds = predict_all_models(smiles=smiles)
     num_tasks = len(task_names)
 
+    # Compute DrugBank percentiles
+    preds_numpy = np.array(preds).transpose()  # (num_tasks, num_molecules)
+    drugbank_percentiles = np.stack([
+        compute_drugbank_percentile(task_name=task_name, predictions=task_preds)
+        for task_name, task_preds in zip(task_names, preds_numpy)
+    ]).transpose()  # (num_molecules, num_tasks)
+
+    # Save predictions
+    preds_dicts = []
+    for smiles_index, smile in enumerate(smiles):
+        preds_dict = {"smiles": smile}
+
+        for task_index, task_name in enumerate(task_names):
+            preds_dict[task_name] = preds[smiles_index][task_index]
+            preds_dict[f"{task_name}_drugbank_approved_percentile"] = drugbank_percentiles[smiles_index][task_index]
+
+        preds_dicts.append(preds_dict)
+
     # TODO: Delete predictions when no longer needed
     # TODO: Check if this works for multiple users at once when using same predictions filename
-    # Save predictions
-    preds_dicts = [
-        {
-            "smiles": smile,
-            **{
-                task_name: preds[smiles_index][task_index]
-                for task_index, task_name in enumerate(task_names)
-            }
-        }
-        for smiles_index, smile in enumerate(smiles)
-    ]
     preds_df = pd.DataFrame(preds_dicts)
     preds_df.to_csv(os.path.join(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME']))
 
@@ -495,6 +502,7 @@ def predict():
                           task_names=task_names,
                           num_tasks=num_tasks,
                           preds=preds,
+                          drugbank_percentiles=drugbank_percentiles,
                           warnings=["List contains invalid SMILES strings"] if None in preds else None,
                           errors=["No SMILES strings given"] if len(preds) == 0 else None)
 

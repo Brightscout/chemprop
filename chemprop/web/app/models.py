@@ -1,11 +1,36 @@
 """Defines a number of model helper functions."""
 import os
 
+import numpy as np
+import pandas as pd
+from scipy.stats import percentileofscore
+
 from chemprop.web.app import app, db
 from chemprop.utils import load_args, load_checkpoint, load_scalers, load_task_names
 
 
 MODELS_DICT = {}
+DRUGBANK_DF = pd.DataFrame()
+
+
+def load_drugbank_reference() -> None:
+    """Loads the reference set of DrugBank approved molecules with their model predictions."""
+    # Load DrugBank data and save to global variable
+    global DRUGBANK_DF
+    print("-- LOADING DRUGBANK --")
+    DRUGBANK_DF = pd.read_csv(app.config["DRUGBANK_PATH"])
+
+
+def compute_drugbank_percentile(task_name: str, predictions: np.ndarray) -> np.ndarray:
+    """Computes the percentile of the prediction compared to the DrugBank approved molecules.
+
+    :param task_name: The name of the task (property) that is predicted.
+    :param predictions: A 1D numpy array of predictions.
+    """
+    if len(DRUGBANK_DF) == 0:
+        load_drugbank_reference()
+
+    return percentileofscore(DRUGBANK_DF[task_name], predictions)
 
 
 def load_models() -> None:

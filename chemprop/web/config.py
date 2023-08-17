@@ -11,5 +11,6 @@ DEFAULT_USER_ID = 1
 SMILES_FILENAME = 'smiles.csv'
 PREDICTIONS_FILENAME = 'predictions.csv'
 DB_FILENAME = 'chemprop.sqlite3'
+DRUGBANK_FILENAME = 'drugbank_approved.csv'
 CUDA = torch.cuda.is_available()
 GPUS = list(range(torch.cuda.device_count()))

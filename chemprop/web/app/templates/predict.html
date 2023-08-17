@@ -145,7 +145,7 @@
             <p>SMILES: {{ smiles[i] }}</p>
 
             {% for j in range(num_tasks) %}
-                <p>{{ task_names[j] }}: {{ preds[i][j] }}</p>
+                <p>{{ task_names[j] }}: {{ '%0.4f'|format(preds[i][j]) }} ({{ '%0.2f'|format(drugbank_percentiles[i][j]) }}% of DrugBank Approved)</p>
             {% endfor %}
 
             <hr>
