@@ -21,11 +21,13 @@ class WebArgs(Tap):
     initdb: bool = False  # Initialize Database
     root_folder: str = None  # Root folder where web data and checkpoints will be saved (defaults to chemprop/web/app)
     allow_checkpoint_upload: bool = False  # Whether to allow checkpoint uploads
+    max_molecules: int | None = None  # Maximum number of molecules for which to allow predictions
 
 
 def run_web(args: WebArgs) -> None:
     app.config['DEMO'] = args.demo
-    app.config["ALLOW_CHECKPOINT_UPLOAD"] = args.allow_checkpoint_upload
+    app.config['ALLOW_CHECKPOINT_UPLOAD'] = args.allow_checkpoint_upload
+    app.config['MAX_MOLECULES'] = args.max_molecules
 
     # Set up root folder and subfolders
     set_root_folder(

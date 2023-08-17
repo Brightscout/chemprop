@@ -13,6 +13,10 @@
     <h3>Predict</h3>
     {% endif %}
 
+    {% if max_molecules %}
+        <p>Note: Predictions can be made for at most {{ max_molecules }} molecules at a time.</p>
+    {% endif %}
+
     <form enctype="multipart/form-data" method="POST">
 {#        <!--Model checkpoint selector-->#}
 {#        <h5>Model checkpoint</h5>#}

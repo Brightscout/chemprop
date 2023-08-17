@@ -327,6 +327,7 @@ def render_predict(**kwargs):
                            checkpoints=db.get_ckpts(request.cookies.get('currentUser')),
                            cuda=app.config['CUDA'],
                            gpus=app.config['GPUS'],
+                           max_molecules=app.config['MAX_MOLECULES'],
                            checkpoint_upload_warnings=checkpoint_upload_warnings,
                            checkpoint_upload_errors=checkpoint_upload_errors,
                            users=db.get_all_users(),
@@ -453,6 +454,11 @@ def predict():
 
         # Delete data
         os.remove(data_path)
+
+    # Error if too many molecules
+    if len(smiles) > app.config['MAX_MOLECULES']:
+        return render_predict(errors=[f'Received too many molecules. '
+                                      f'Maximum number of molecules is {app.config["MAX_MOLECULES"]:,}.'])
 
     # Make predictions
     task_names, preds = predict_all_models(smiles=smiles)
