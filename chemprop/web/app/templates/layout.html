@@ -10,9 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
-          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+    <link rel='stylesheet' id='classic-theme-styles-css' href='https://greenstonebio.com/wp-includes/css/classic-themes.min.css?ver=6.2.2' media='all' />
+          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
             crossorigin="anonymous"></script>
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='stylesheets/style.css') }}">
@@ -22,12 +21,27 @@
         });
     </script>
     <title>Chemprop</title>
+    <style>
+        /* Add custom styles for the header */
+        .navbar.navbar-inverse {
+            background-color: #12272b;
+            border-color: #12272b;
+        }
+        .navbar.navbar-inverse .navbar-nav > li > a {
+            color: white; /* Change text color to white for better contrast */
+        }
+        .navbar.navbar-inverse .navbar-toggle .icon-bar {
+            background-color: white; /* Change the hamburger icon color to white */
+        }
+    </style>
+    
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
         <div class="navbar-header">
-            <a class="navbar-brand" href="{{ url_for('home') }}">Chemprop</a>
+            <a href="https://greenstonebio.com"><img src="https://greenstonebio.com/wp-content/uploads/2022/03/logo.svg" alt="GreenStone Logo" /></a>
+            <!-- <a class="navbar-brand" href="{{ url_for('home') }}">Chemprop</a> -->
         </div>
         <ul class="nav navbar-nav">
             {#
@@ -36,7 +50,7 @@
             <li><a href="{{ url_for('train') }}">Train</a></li>
             {% endif %}
             #}
-            <li><a href="{{ url_for('predict') }}">Predict</a></li>
+            <li><a href="{{ url_for('predict') }}" style="color: white;">Predict</a></li>
             {#
             {% if not config['DEMO'] %}
             <li><a href="{{ url_for('data') }}">Data</a></li>
