@@ -2,10 +2,26 @@
 {% from 'macros.html' import add_checkpoint, chemdraw, error_message, warning_message %}
 
 {% block title %}
-    <h1>Predict</h1>
+    <h1>ADMET-AI Prediction</h1>
 {% endblock %}
 
 {% block content %}
+
+    <style>
+        body {
+            /* Set the path to your background image */
+            /* background-image: url('/Users/parkerwalther/chemprop/chemprop/web/app/static/images/icon.png'); */
+            background-image: url('../static/images/icon_faded.png');
+            /* background-color: aquamarine; */
+            /* Set the background size and other properties */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            /* background-color: rgba(255, 255, 255, 0.5); */
+            /* Add any additional styles you want for the background */
+        }
+    </style>
+
     {% if not config['DEMO'] and config['ALLOW_CHECKPOINT_UPLOAD'] %}
     {{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}
     <hr>
@@ -141,15 +157,51 @@
         <br>
         <br>
 
-        {% for i in range(num_smiles) %}
-            <p>SMILES: {{ smiles[i] }}</p>
-
-            {% for j in range(num_tasks) %}
-                <p>{{ task_names[j] }}: {{ '%0.4f'|format(preds[i][j]) }} ({{ '%0.2f'|format(drugbank_percentiles[i][j]) }}% of DrugBank Approved)</p>
-            {% endfor %}
-
-            <hr>
-        {% endfor %}
+        <style>
+            /* Add styles for the table */
+            table {
+                width: 60%; /* Make the table take up the full width of its container */
+                border-collapse: collapse; /* Combine cell borders */
+                background-color: #f2f2f2; /* Light grey fill color */
+            }
+        
+            th, td {
+                padding: 10px; /* Increase padding */
+                border: 1px solid #dddddd; /* Cell borders */
+                text-align: center; /* Center-align content */
+            }
+        
+            th {
+                background-color: #12272b; /* Header cell background color */
+                color: white; /* Header text color */
+            }
+        </style>
+        
+        <div>
+            <p><strong>SMILES:</strong> {{ smiles[0] }}</p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Prediction</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for j in range(num_tasks) %}
+                    <tr>
+                        <td><strong>{{ task_names[j] }}</strong></td>
+                        {% for i in range(num_smiles) %}
+                            <td>
+                                {{ '%0.4f'|format(preds[i][j]) }}
+                                <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[i][j]) }}% of DrugBank Approved"></span>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
         {% if show_more > 0 %}
             <p>... and {{ show_more }} more. Download file for full predictions.</p>
         {% endif %}
