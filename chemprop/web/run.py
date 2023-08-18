@@ -8,7 +8,7 @@ import os
 from tap import Tap  # pip install typed-argument-parser (https://github.com/swansonk14/typed-argument-parser)
 
 from chemprop.data import set_cache_graph, set_cache_mol
-from chemprop.web.app import app, db, models
+from chemprop.web.app import app, db
 from chemprop.web.utils import clear_temp_folder, set_root_folder
 
 
