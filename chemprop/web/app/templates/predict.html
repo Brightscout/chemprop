@@ -7,21 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADMET-AI Prediction</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            /* background-color: #f5f5f5; */
-        }
+        
 
-        .container {
+        #cont1 {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background-color: white;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            margin-top: 40px;
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
         h1 {
@@ -53,7 +49,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="cont1">
         <h1>ADMET-AI Prediction</h1>
         <h3>Information</h3>
         <p>
@@ -77,273 +73,283 @@
 
 
 {% block content %}
+<body>
+    <div class="container" id="cont1">
+        <style>
+            body {
+                background-image: url('../static/images/icon_faded.png');
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+            }
+        </style>
 
-    <style>
-        body {
-            background-image: url('../static/images/icon_faded.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-    </style>
-
-    {% if not config['DEMO'] and config['ALLOW_CHECKPOINT_UPLOAD'] %}
-    {{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}
-    <hr>
-
-    
-    {% endif %}
-    
-
-    {% if max_molecules %}
-        <p>Note: Predictions can be made for at most {{ max_molecules }} molecules at a time.</p>
-    {% endif %}
-
-    <form enctype="multipart/form-data" method="POST">
-{#        <!--Model checkpoint selector-->#}
-{#        <h5>Model checkpoint</h5>#}
-{#        <select name="checkpointName" required>#}
-{#            {% for checkpoint in checkpoints %}#}
-{#                <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>#}
-{#            {% endfor %}#}
-{#        </select>#}
-{##}
-{#        <br>#}
-{#        <br>#}
-
-        <!--SMILES upload type selector-->
-        <div class="btn-group" id="inputSelect" data-toggle="buttons">
-            <label id="textButton" class="btn btn-primary active">
-              <input type="radio" name="inputType" value="text" autocomplete="off"> Text Input
-            </label>
-            <label id="fileButton" class="btn btn-primary">
-              <input type="radio" name="inputType" value="file" autocomplete="off"> Upload File
-            </label>
-            <label id="drawButton" class="btn btn-primary">
-              <input type="radio" name="inputType" value="file" autocomplete="off"> Draw Molecule
-            </label>
-        </div>
-
-        <br>
-
-        <!--SMILES input-->
-        <div id="textInputForm">
-            <h5>SMILES (one per line)</h5>
-            <textarea id="textSmilesInput" name="textSmiles" cols="100" rows="10" placeholder="SMILES" required></textarea>
-        </div>
-        <div id="fileInputForm" style="display:none">
-            <h5>File containing SMILES (one per line)</h5>
-            <input id="fileSmilesInput" type="file" name="data" accept=".csv">
-        </div>
-        <div id="drawInputForm" style="display:none">
-            <h5>Draw a molecule</h5>
-            {{ chemdraw() }}
-            <br>
-            <button type="button" id="convertToSmiles" class="btn btn-primary btn-xs">Convert to SMILES</button>
-            <input id="drawSmilesInput" name="drawSmiles" placeholder="SMILES">
-        </div>
-
-        <br>
-
-        <!--SMILES input functionality-->
-        <script>
-            $(document).ready(function() {
-                $(document).ready(function() {
-                    $("#textButton").click(function() {
-                        $("#textInputForm").show();
-                        $("#textSmilesInput").prop('required', true);
-                        $("#fileInputForm").hide();
-                        $("#fileSmilesInput").prop('required', false);
-                        $("#drawInputForm").hide();
-                        $("#drawSmilesInput").prop('required', false);
-                        $("#drawSmilesInput").val('');
-                    });
-                    $("#fileButton").click(function() {
-                        $("#textInputForm").hide();
-                        $("#textSmilesInput").prop('required', false);
-                        $("#textSmilesInput").val('');
-                        $("#fileInputForm").show();
-                        $("#fileSmilesInput").prop('required', true);
-                        $("#drawInputForm").hide();
-                        $("#drawSmilesInput").prop('required', false);
-                        $("#drawSmilesInput").val('');
-                    });
-                    $("#drawButton").click(function() {
-                        $("#textInputForm").hide();
-                        $("#textSmilesInput").prop('required', false);
-                        $("#textSmilesInput").val('');
-                        $("#fileInputForm").hide();
-                        $("#fileSmilesInput").prop('required', false);
-                        $("#drawInputForm").show();
-                        $("#drawSmilesInput").prop('required', true);
-                    });
-                });
-
-                $("#convertToSmiles").click(function() {
-                    $("#drawSmilesInput").val(jsmeApplet.smiles());
-                });
-            });
-        </script>
-        <!--GPU selector-->
-        {% if cuda %}
-            <h5>GPU</h5>
-            <select name="gpu">
-                <option value="None">None</option>
-                {% for gpu in gpus %}
-                    <option value="{{ gpu }}">{{ gpu }}</option>
-                {% endfor %}
-            </select>
-            <br>
-            <br>
-        {% endif %}
-
-        <button type="submit" class="btn btn-primary btn-md">Predict</button>
-    </form>
-
-    <br>
-
-    {% if warnings %}
-        {% for warning in warnings %}
-            {{ warning_message(warning) }}
-        {% endfor %}
-    {% endif %}
-
-    {% if errors %}
-        {% for error in errors %}
-            {{ error_message(error) }}
-        {% endfor %}
-    {% endif %}
-
-    {% if predicted %}
+        {% if not config['DEMO'] and config['ALLOW_CHECKPOINT_UPLOAD'] %}
+        {{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}
         <hr>
 
-        <a href="{{ url_for('download_predictions') }}"><button class="btn btn-default btn-md">Download Predictions</button></a>
-
-        <br>
-        <br>
-
-        <style>
-            /* Add styles for the table */
-            table {
-                width: 60%; /* Make the table take up the full width of its container */
-                border-collapse: collapse; /* Combine cell borders */
-                background-color: #f2f2f2; /* Light grey fill color */
-            }
         
-            th, td {
-                padding: 10px; /* Increase padding */
-                border: 1px solid #dddddd; /* Cell borders */
-                text-align: center; /* Center-align content */
-            }
-        
-            th {
-                background-color: #12272b; /* Header cell background color */
-                color: white; /* Header text color */
-            }
-        </style>
-
-        <style>
-            /* CSS for rounded image container */
-            .mol-image {
-                display: inline-block;
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 5px;
-                margin-left: 10px;
-                background-color: #f8f4f4; 
-            }
-
-            .collapse {
-                /* background-color: #d01212;  */
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                padding: 15px;
-            }
-
-            .btn-link {
-                border: 1px solid #ddd;
-                border-radius: 10px;
-                /* padding: 15px; */
-                width: 100%;
-                text-align: left;
-                padding-top: 10px; 
-                padding-bottom: 10px;
-                padding-right: 15px;
-                padding-left: 15px;
-                background-color: #d0ece4;
-            }
-
-        </style>
-
-
-        {% for smiles_index in range(num_smiles) %}
-        <div>
-            <button id="collapseButton{{ smiles_index }}" class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
-                <strong>Molecule {{ smiles_index + 1 }}</strong>
-            </button>
-        </div>
-
-        <div id="collapseInfo{{ smiles_index }}" class="collapse">
-            <!-- Display PubChem link and molecule image here -->
-            <!-- <br> -->
-            <strong>SMILES:</strong> {{ smiles[smiles_index] }}
-            <br>
-            <br>
-            <div id="pubchem-link{{ smiles_index }}"></div>
-            <br>
-            <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
-            <br>
-            <br>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Model</th>
-                        <th>Prediction</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for j in range(num_tasks) %}
-                        <tr>
-                            <td><strong>{{ task_names[j] }}</strong></td>
-                            <td>
-                                {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <br>
-        
-
-        <script>
-            $(document).ready(function() {
-                // Fetch SMILES string
-                var smiles = "{{ smiles[smiles_index] }}";
-
-                // PUG-REST API URL
-                var pubChemUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${smiles}/cids/JSON`;
-
-                // Fetch PubChem link
-                $.getJSON(pubChemUrl, function(data) {
-                    if (data && data.IdentifierList && data.IdentifierList.CID.length > 0) {
-                        var cid = data.IdentifierList.CID[0];
-                        var pubChemLink = `<a href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank">View on PubChem</a>`;
-                        $("#pubchem-link{{ smiles_index }}").html(pubChemLink);
-                    }
-                    var imageDiv = document.getElementById("molecule-image{{ smiles_index }}");
-                    var imageUrl = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
-                    var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="300" height="300">`;
-                    imageDiv.innerHTML = imageElement;
-                });
-            });
-        </script>
-        {% endfor %}
-        
-        {% if show_more > 0 %}
-            <p>... and {{ show_more }} more. Download file for full predictions.</p>
         {% endif %}
-    {% endif %}
+        
+
+        {% if max_molecules %}
+            <p>Note: Predictions can be made for at most {{ max_molecules }} molecules at a time.</p>
+        {% endif %}
+
+        <form enctype="multipart/form-data" method="POST">
+    {#        <!--Model checkpoint selector-->#}
+    {#        <h5>Model checkpoint</h5>#}
+    {#        <select name="checkpointName" required>#}
+    {#            {% for checkpoint in checkpoints %}#}
+    {#                <option value="{{ checkpoint[0] }}">{{ checkpoint[1] }}</option>#}
+    {#            {% endfor %}#}
+    {#        </select>#}
+    {##}
+    {#        <br>#}
+    {#        <br>#}
+
+            <!--SMILES upload type selector-->
+            <div class="btn-group" id="inputSelect" data-toggle="buttons">
+                <label id="textButton" class="btn btn-primary active">
+                <input type="radio" name="inputType" value="text" autocomplete="off"> Text Input
+                </label>
+                <label id="fileButton" class="btn btn-primary">
+                <input type="radio" name="inputType" value="file" autocomplete="off"> Upload File
+                </label>
+                <label id="drawButton" class="btn btn-primary">
+                <input type="radio" name="inputType" value="file" autocomplete="off"> Draw Molecule
+                </label>
+            </div>
+
+            <br>
+
+            <!--SMILES input-->
+            <div id="textInputForm">
+                <h5>SMILES (one per line)</h5>
+                <textarea id="textSmilesInput" name="textSmiles" cols="100" rows="10" placeholder="SMILES" required></textarea>
+            </div>
+            <div id="fileInputForm" style="display:none">
+                <h5>File containing SMILES (one per line)</h5>
+                <input id="fileSmilesInput" type="file" name="data" accept=".csv">
+            </div>
+            <div id="drawInputForm" style="display:none">
+                <h5>Draw a molecule</h5>
+                {{ chemdraw() }}
+                <br>
+                <button type="button" id="convertToSmiles" class="btn btn-primary btn-xs">Convert to SMILES</button>
+                <input id="drawSmilesInput" name="drawSmiles" placeholder="SMILES">
+            </div>
+
+            <br>
+
+            <!--SMILES input functionality-->
+            <script>
+                $(document).ready(function() {
+                    $(document).ready(function() {
+                        $("#textButton").click(function() {
+                            $("#textInputForm").show();
+                            $("#textSmilesInput").prop('required', true);
+                            $("#fileInputForm").hide();
+                            $("#fileSmilesInput").prop('required', false);
+                            $("#drawInputForm").hide();
+                            $("#drawSmilesInput").prop('required', false);
+                            $("#drawSmilesInput").val('');
+                        });
+                        $("#fileButton").click(function() {
+                            $("#textInputForm").hide();
+                            $("#textSmilesInput").prop('required', false);
+                            $("#textSmilesInput").val('');
+                            $("#fileInputForm").show();
+                            $("#fileSmilesInput").prop('required', true);
+                            $("#drawInputForm").hide();
+                            $("#drawSmilesInput").prop('required', false);
+                            $("#drawSmilesInput").val('');
+                        });
+                        $("#drawButton").click(function() {
+                            $("#textInputForm").hide();
+                            $("#textSmilesInput").prop('required', false);
+                            $("#textSmilesInput").val('');
+                            $("#fileInputForm").hide();
+                            $("#fileSmilesInput").prop('required', false);
+                            $("#drawInputForm").show();
+                            $("#drawSmilesInput").prop('required', true);
+                        });
+                    });
+
+                    $("#convertToSmiles").click(function() {
+                        $("#drawSmilesInput").val(jsmeApplet.smiles());
+                    });
+                });
+            </script>
+            <!--GPU selector-->
+            {% if cuda %}
+                <h5>GPU</h5>
+                <select name="gpu">
+                    <option value="None">None</option>
+                    {% for gpu in gpus %}
+                        <option value="{{ gpu }}">{{ gpu }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <br>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary btn-md">Predict</button>
+        </form>
+
+        <br>
+
+        {% if warnings %}
+            {% for warning in warnings %}
+                {{ warning_message(warning) }}
+            {% endfor %}
+        {% endif %}
+
+        {% if errors %}
+            {% for error in errors %}
+                {{ error_message(error) }}
+            {% endfor %}
+        {% endif %}
+
+        {% if predicted %}
+            <hr>
+
+            <a href="{{ url_for('download_predictions') }}"><button class="btn btn-default btn-md">Download Predictions</button></a>
+
+            <br>
+            <br>
+
+            <style>
+                /* Add styles for the table */
+                table {
+                    width: 60%; 
+                    border-collapse: collapse; 
+                    background-color: #f2f2f2;
+                }
+            
+                th, td {
+                    padding: 10px; 
+                    border: 1px solid #dddddd; 
+                    text-align: center; 
+                }
+            
+                th {
+                    background-color: #12272b; /* Header cell background color */
+                    color: white; 
+                }
+            </style>
+
+            <style>
+                /* CSS for  image container */
+                .mol-image {
+                    display: inline-block;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 5px;
+                    margin-left: 10px;
+                    background-color: #f8f4f4; 
+                }
+
+                .collapse {
+                    /* background-color: #d01212;  */
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 15px;
+                }
+
+                .btn-link2 {
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    /* padding: 15px; */
+                    width: 100%;
+                    text-align: left;
+                    padding-top: 10px; 
+                    padding-bottom: 10px;
+                    padding-right: 15px;
+                    padding-left: 15px;
+                    background-color: #d0ece4;
+                    color: #007bff;
+                    text-decoration: none;
+                }
+
+                .btn-link2:hover {
+                    text-decoration: underline;
+                }
+
+            </style>
+
+
+            {% for smiles_index in range(num_smiles) %}
+            <div>
+                <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
+                    <strong>Molecule {{ smiles_index + 1 }}</strong>
+                </button>
+            </div>
+
+            <div id="collapseInfo{{ smiles_index }}" class="collapse">
+                <!-- Display PubChem link and molecule image here -->
+                <!-- <br> -->
+                <strong>SMILES:</strong> {{ smiles[smiles_index] }}
+                <br>
+                <br>
+                <div id="pubchem-link{{ smiles_index }}"></div>
+                <br>
+                <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
+                <br>
+                <br>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Prediction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for j in range(num_tasks) %}
+                            <tr>
+                                <td><strong>{{ task_names[j] }}</strong></td>
+                                <td>
+                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                    <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <br>
+            
+
+            <script>
+                $(document).ready(function() {
+                    // Fetch SMILES string
+                    var smiles = "{{ smiles[smiles_index] }}";
+
+                    // PUG-REST API URL
+                    var pubChemUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${smiles}/cids/JSON`;
+
+                    // Fetch PubChem link
+                    $.getJSON(pubChemUrl, function(data) {
+                        if (data && data.IdentifierList && data.IdentifierList.CID.length > 0) {
+                            var cid = data.IdentifierList.CID[0];
+                            var pubChemLink = `<a href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank">View on PubChem</a>`;
+                            $("#pubchem-link{{ smiles_index }}").html(pubChemLink);
+                        }
+                        var imageDiv = document.getElementById("molecule-image{{ smiles_index }}");
+                        var imageUrl = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
+                        var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="300" height="300">`;
+                        imageDiv.innerHTML = imageElement;
+                    });
+                });
+            </script>
+            {% endfor %}
+            
+            {% if show_more > 0 %}
+                <p>... and {{ show_more }} more. Download file for full predictions.</p>
+            {% endif %}
+        {% endif %}
+
+    </div>
+</body>
 {% endblock %}
