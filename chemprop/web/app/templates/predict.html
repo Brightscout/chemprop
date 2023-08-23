@@ -2,8 +2,79 @@
 {% from 'macros.html' import add_checkpoint, chemdraw, error_message, warning_message %}
 
 {% block title %}
-    <h1>ADMET-AI Prediction</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMET-AI Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            /* background-color: #f5f5f5; */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 40px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #777;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ADMET-AI Prediction</h1>
+        <h3>Information</h3>
+        <p>
+            Explanation about Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore 
+            et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
+            aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
+            dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia 
+            deserunt mollit anim id est laborum.
+        </p>
+        <p>
+            ADMET-AI is still in beta testing mode, more improvements and a paper will come out later
+        </p>
+        <p> Chemprop <a href="https://github.com/chemprop/chemprop"> Code</a> and <a href="https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237"> Paper</a>.</p>
+        <p>  <a href="https://www.cell.com/cell/fulltext/S0092-8674(20)30102-1"> Antibiotics</a> and <a href="https://tdcommons.ai/"> TDC</a> Information.</p>
+
+    </div>
+</body>
+
 {% endblock %}
+
+
 
 {% block content %}
 
@@ -20,19 +91,7 @@
     {{ add_checkpoint('predict', checkpoint_upload_warnings, checkpoint_upload_errors) }}
     <hr>
 
-    <h3>Information</h3>
-
-    <p>
-        Explanation about Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore 
-        et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
-        aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
-        dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia 
-        deserunt mollit anim id est laborum.
-    </p>
-
-    <p>
-        ADMET-AI is still in beta testing mode, more improvements and a paper will come out later
-    </p>
+    
     {% endif %}
     
 
@@ -125,7 +184,6 @@
                 });
             });
         </script>
-
         <!--GPU selector-->
         {% if cuda %}
             <h5>GPU</h5>
@@ -183,31 +241,106 @@
                 color: white; /* Header text color */
             }
         </style>
-        
+
+        <style>
+            /* CSS for rounded image container */
+            .mol-image {
+                display: inline-block;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 5px;
+                margin-left: 10px;
+                background-color: #f8f4f4; 
+            }
+
+            .collapse {
+                /* background-color: #d01212;  */
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 15px;
+            }
+
+            .btn-link {
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                /* padding: 15px; */
+                width: 100%;
+                text-align: left;
+                padding-top: 10px; 
+                padding-bottom: 10px;
+                padding-right: 15px;
+                padding-left: 15px;
+                background-color: #d0ece4;
+            }
+
+        </style>
+
+
+        {% for smiles_index in range(num_smiles) %}
         <div>
-            <p><strong>SMILES:</strong> {{ smiles[0] }}</p>
+            <button id="collapseButton{{ smiles_index }}" class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
+                <strong>Molecule {{ smiles_index + 1 }}</strong>
+            </button>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Model</th>
-                    <th>Prediction</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for j in range(num_tasks) %}
+
+        <div id="collapseInfo{{ smiles_index }}" class="collapse">
+            <!-- Display PubChem link and molecule image here -->
+            <!-- <br> -->
+            <strong>SMILES:</strong> {{ smiles[smiles_index] }}
+            <br>
+            <br>
+            <div id="pubchem-link{{ smiles_index }}"></div>
+            <br>
+            <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
+            <br>
+            <br>
+
+            <table>
+                <thead>
                     <tr>
-                        <td><strong>{{ task_names[j] }}</strong></td>
-                        {% for i in range(num_smiles) %}
-                            <td>
-                                {{ '%0.4f'|format(preds[i][j]) }}
-                                <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[i][j]) }}% of DrugBank Approved"></span>
-                            </td>
-                        {% endfor %}
+                        <th>Model</th>
+                        <th>Prediction</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for j in range(num_tasks) %}
+                        <tr>
+                            <td><strong>{{ task_names[j] }}</strong></td>
+                            <td>
+                                {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <br>
+        
+
+        <script>
+            $(document).ready(function() {
+                // Fetch SMILES string
+                var smiles = "{{ smiles[smiles_index] }}";
+
+                // PUG-REST API URL
+                var pubChemUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${smiles}/cids/JSON`;
+
+                // Fetch PubChem link
+                $.getJSON(pubChemUrl, function(data) {
+                    if (data && data.IdentifierList && data.IdentifierList.CID.length > 0) {
+                        var cid = data.IdentifierList.CID[0];
+                        var pubChemLink = `<a href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank">View on PubChem</a>`;
+                        $("#pubchem-link{{ smiles_index }}").html(pubChemLink);
+                    }
+                    var imageDiv = document.getElementById("molecule-image{{ smiles_index }}");
+                    var imageUrl = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
+                    var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="300" height="300">`;
+                    imageDiv.innerHTML = imageElement;
+                });
+            });
+        </script>
+        {% endfor %}
         
         {% if show_more > 0 %}
             <p>... and {{ show_more }} more. Download file for full predictions.</p>
