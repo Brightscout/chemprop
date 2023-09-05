@@ -10,7 +10,7 @@
         
 
         #cont1 {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
             background-color: white;
@@ -214,7 +214,33 @@
         {% if predicted %}
             <hr>
 
-            <a href="{{ url_for('download_predictions') }}"><button class="btn btn-default btn-md">Download Predictions</button></a>
+            <a href="{{ url_for('download_predictions') }}"><button class="btn btn-default btn-md">Download Results</button></a>
+
+            
+
+            <!-- UNFINISHED: Sort Function -->
+            <!-- <button class="btn btn-default btn-md" onclick="SortData()">
+                Sort Predictions
+            </button>
+              
+            <script>
+                function comparator(a, b) {
+                    if (a.dataset.index < b.dataset.index)
+                        return -1;
+                    if (a.dataset.index > b.dataset.index)
+                        return 1;
+                    return 0;
+                }
+                  
+                // Function to sort Data
+                function SortData() {
+                    var indexes = document.querySelectorAll("[data-index]");
+                    var indexesArray = Array.from(indexes);
+                    let sorted = indexesArray.sort(comparator);
+                    sorted.forEach(e =>
+                        document.querySelector("#list").appendChild(e));
+                }
+            </script>   -->
 
             <br>
             <br>
@@ -222,24 +248,24 @@
             <style>
                 /* Add styles for the table */
                 table {
-                    width: 60%; 
-                    border-collapse: collapse; 
+                    min-width: 300px
+                    width: 30%; /* Adjust the width as needed */
+                    border-collapse: collapse;
                     background-color: #f2f2f2;
                 }
-            
-                th, td {
-                    padding: 10px; 
-                    border: 1px solid #dddddd; 
-                    text-align: center; 
-                }
-            
-                th {
-                    background-color: #12272b; /* Header cell background color */
-                    color: white; 
-                }
-            </style>
 
-            <style>
+                th, td {
+                    padding: 4px; /* Adjust the padding as needed */
+                    border: 1px solid #dddddd;
+                    text-align: center;
+                    font-size: 12px; /* Adjust the font size as needed */
+                }
+
+                th {
+                    background-color: #12272b;
+                    color: white;
+                }
+
                 /* CSS for  image container */
                 .mol-image {
                     display: inline-block;
@@ -268,7 +294,7 @@
                     padding-right: 15px;
                     padding-left: 15px;
                     background-color: #d0ece4;
-                    color: #007bff;
+                    /* color: #007bff; */
                     text-decoration: none;
                 }
 
@@ -276,75 +302,311 @@
                     text-decoration: underline;
                 }
 
+                ul {
+                    list-style-type: none;
+                    margin: 0;
+                    padding: 0;
+                }
+
             </style>
-
-
-            {% for smiles_index in range(num_smiles) %}
-            <div>
-                <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
-                    <strong>Molecule {{ smiles_index + 1 }}</strong>
-                </button>
-            </div>
-
-            <div id="collapseInfo{{ smiles_index }}" class="collapse">
-                <!-- Display PubChem link and molecule image here -->
-                <!-- <br> -->
-                <strong>SMILES:</strong> {{ smiles[smiles_index] }}
-                <br>
-                <br>
-                <div id="pubchem-link{{ smiles_index }}"></div>
-                <br>
-                <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
-                <br>
-                <br>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Model</th>
-                            <th>Prediction</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for j in range(num_tasks) %}
-                            <tr>
-                                <td><strong>{{ task_names[j] }}</strong></td>
-                                <td>
-                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                    <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <br>
             
+            <!-- <label for="models">Select Model for Sorting:</label>
+            <select name="models" id="models">
+                <option value="0">ClinTox</option>
+                <option value="1">Test</option>
+                <option value="2">Placeholder</option>
+                
+            </select> -->
 
-            <script>
-                $(document).ready(function() {
-                    // Fetch SMILES string
-                    var smiles = "{{ smiles[smiles_index] }}";
+  
 
-                    // PUG-REST API URL
-                    var pubChemUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${smiles}/cids/JSON`;
+            <ul id="list">
+                    {% for smiles_index in range(num_smiles) %}
+                    
+                    <li class="index" data-index="{{ '%0.4f'|format(preds[smiles_index][0]) }}">
+                        <div>
+                            <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
+                                <strong>Molecule {{ smiles_index + 1 }}  </strong>
+                            </button>
+                        </div>
 
-                    // Fetch PubChem link
-                    $.getJSON(pubChemUrl, function(data) {
-                        if (data && data.IdentifierList && data.IdentifierList.CID.length > 0) {
-                            var cid = data.IdentifierList.CID[0];
-                            var pubChemLink = `<a href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank">View on PubChem</a>`;
-                            $("#pubchem-link{{ smiles_index }}").html(pubChemLink);
-                        }
-                        var imageDiv = document.getElementById("molecule-image{{ smiles_index }}");
-                        var imageUrl = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
-                        var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="300" height="300">`;
-                        imageDiv.innerHTML = imageElement;
-                    });
-                });
-            </script>
-            {% endfor %}
-            
+                        <div id="collapseInfo{{ smiles_index }}" class="collapse">
+                            <!-- Display PubChem link and molecule image here -->
+                            <!-- <br> -->
+                            <strong>SMILES:</strong> {{ smiles[smiles_index] }}
+                            <br>
+                            <br>
+                            <!-- <div id="pubchem-link{{ smiles_index }}"></div> -->
+                            <br>
+                            
+                            <br>
+                            <br>
+
+                            <!-- List of PRC-AUC values that match the key -->
+                            {% set PRC_values = 
+                                [0.1188409991,
+                                0.5353277512,
+                                0.777980993,
+                                0.6980331362,
+                                0,
+                                0.1437211135,
+                                0,
+                                0,
+                                0.4463602219,
+                                0.2229313881,
+                                0.4819964549,
+                                0.4978159119,
+                                0.4526238289,
+                                0.2024394062,
+                                0.5448202671,
+                                0.3629974771,
+                                0.6253267119,
+                                0,
+                                0.6525598343,
+                                0.0483338229,
+                                0.4706790958,
+                                0.9000065679,
+                                0,
+                                0,
+                                0,
+                                0.8473279693,
+                                0.659805538,
+                                0,
+                                0.6969335515,
+                                0,
+                                0]
+                            %}
+                            <!-- List of ROC-AUC values that match the key -->
+                            {% set ROC_values = 
+                                [0.5771186173,
+                                0.477179054,
+                                0.510707943,
+                                0.4248628287,
+                                0,
+                                0.4219002579,
+                                0,
+                                0,
+                                0.5186075715,
+                                0.5094745814,
+                                0.664129183,
+                                0.5746623517,
+                                0.663935029,
+                                0.5430707527,
+                                0.5186791158,
+                                0.4008792081,
+                                0.6817951526,
+                                0,
+                                0.4191896506,
+                                0.5336169739,
+                                0.4715895225,
+                                0.5535767771,
+                                0,
+                                0,
+                                0,
+                                0.5050204236,
+                                0.6620365376,
+                                0,
+                                0.4707517967,
+                                0,
+                                0]
+                                %}
+                            
+                            <!-- Key for the table each model is assigned to 0 = adsorption, 1 = distribution etc -->
+                            {% set table_assignments = [4, 4, 1, 0, 0, 4, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 4, 3, 4, 4, 4, 0, 0, 4, 0, 0, 0, 1, 4, 0, 1] %}
+                        
+                            <div style="display: flex; flex-wrap: wrap;">
+                                <style>
+                                    .table_header {
+                                        color: #007bff
+                                    }
+                                </style>
+                                
+                                <div style="flex: 1; width: 100%;">
+                                    <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
+                                </div>
+
+                                <div style="flex: 1; width: 100%;">
+                                    <h3 id="table_header">Absorption</h3>
+                                    <table style="width: 90%; margin: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Model</th>
+                                                <th>Prediction</th>
+                                               
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for j in range(num_tasks) %}
+                                                {% if table_assignments[j] == 0 %}
+                                                    <tr>
+                                                        <td><strong>
+                                                            {{ task_names[j] }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" 
+                                                                title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%">
+                                                            </span>    
+                                                        </strong></td>                                                        <td>
+                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                        </td>
+                                                        
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div style="flex: 1; width: 100%;">
+                                    <h3 id="table_header">Distribution</h3>
+                                    <table style="width: 90%; margin: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Model</th>
+                                                <th>Prediction</th>
+                                                
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for j in range(num_tasks) %}
+                                                {% if table_assignments[j] == 1 %}
+                                                    <tr>
+                                                        <td><strong>
+                                                            {{ task_names[j] }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
+                                                        </strong></td>                                                        <td>
+                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                        </td>
+                                                        
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="flex: 1; width: 100%;">
+                                    <h3 id="table_header">Metabolism</h3>
+                                    <table style="width: 90%; margin: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Model</th>
+                                                <th>Prediction</th>
+                                               
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for j in range(num_tasks) %}
+                                                {% if table_assignments[j] == 2 %}
+                                                    <tr>
+                                                        <td><strong>
+                                                            {{ task_names[j] }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
+                                                        </strong></td>                                                        <td>
+                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                        </td>
+                                                        
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="flex: 1; width: 100%;">
+                                    <h3 id="table_header">Excretion</h3>
+                                    <table style="width: 90%; margin: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Model</th>
+                                                <th>Prediction</th>
+                                                
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for j in range(num_tasks) %}
+                                                {% if table_assignments[j] == 3 %}
+                                                    <tr>
+                                                        <td><strong>
+                                                            {{ task_names[j] }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
+                                                        </strong></td>                                                        <td>
+                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                        </td>
+                                                        
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="flex: 1; width: 100%;">
+                                    <h3 id="table_header">Toxicity</h3>
+                                    <table style="width: 90%; margin: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Model</th>
+                                                <th>Prediction</th>
+                                                
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for j in range(num_tasks) %}
+                                                {% if table_assignments[j] == 4 %}
+                                                    <tr>
+                                                        <td><strong>
+                                                            {{ task_names[j] }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
+                                                        </strong></td>
+                                                        <td>
+                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                        </td>
+                                                       
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                            
+                        
+                        </div>
+                        <br>
+                        
+                        <script>
+                            $(document).ready(function() {
+                                // Fetch SMILES string
+                                var smiles = "{{ smiles[smiles_index] }}";
+
+                                // PUG-REST API URL
+                                var pubChemUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${smiles}/cids/JSON`;
+
+                                // Fetch PubChem link
+                                $.getJSON(pubChemUrl, function(data) {
+                                    if (data && data.IdentifierList && data.IdentifierList.CID.length > 0) {
+                                        var cid = data.IdentifierList.CID[0];
+                                        var pubChemLink = `<a href="https://pubchem.ncbi.nlm.nih.gov/compound/${cid}" target="_blank">View on PubChem</a>`;
+                                        $("#pubchem-link{{ smiles_index }}").html(pubChemLink);
+                                        var nameUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/property/common_name/JSON`;
+                                
+                                    }
+                                    var imageDiv = document.getElementById("molecule-image{{ smiles_index }}");
+                                    var imageUrl = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
+                                    var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="250" height="250">`;
+                                    imageDiv.innerHTML = imageElement;
+                                });
+                            });
+                        </script>
+                    </li>    
+                    {% endfor %}
+            </ul>
+              
             {% if show_more > 0 %}
                 <p>... and {{ show_more }} more. Download file for full predictions.</p>
             {% endif %}
@@ -353,3 +615,7 @@
     </div>
 </body>
 {% endblock %}
+
+
+
+
