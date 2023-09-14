@@ -7,9 +7,11 @@ import sys
 import shutil
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 import time
-from typing import Callable, List, Tuple
 import multiprocessing as mp
+import tarfile
 import zipfile
+from pathlib import Path
+from typing import Callable, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -610,7 +612,11 @@ def checkpoints():
 @check_allow_checkpoint_upload
 def upload_checkpoint(return_page: str):
     """
-    Uploads a checkpoint .pt file.
+    Uploads a checkpoint file or directory.
+
+    .pt: single model upload.
+    .zip: ensemble upload.
+    .tar.gz: directory of ensembles upload.
 
     :param return_page: The name of the page to render after uploading the checkpoint file.
     """
@@ -625,49 +631,66 @@ def upload_checkpoint(return_page: str):
     ckpt = request.files['checkpoint']
 
     ckpt_name = request.form['checkpointName']
-    ckpt_ext = os.path.splitext(ckpt.filename)[1]
+    ckpt_path = Path(ckpt.filename)
 
     # Collect paths to all uploaded checkpoints (and unzip if necessary)
     temp_dir = TemporaryDirectory()
-    ckpt_paths = []
+    temp_dir_path = Path(temp_dir.name)
 
-    if ckpt_ext.endswith('.pt'):
-        ckpt_path = os.path.join(temp_dir.name, MODEL_FILE_NAME)
+    if ckpt_path.suffix == '.pt':
+        ckpt_path = temp_dir_path / MODEL_FILE_NAME
         ckpt.save(ckpt_path)
-        ckpt_paths = [ckpt_path]
+        ensemble_ckpt_dirs = [temp_dir_path]
+        ensemble_names = [ckpt_name]
 
-    elif ckpt_ext.endswith('.zip'):
-        ckpt_dir = os.path.join(temp_dir.name, 'models')
-        zip_path = os.path.join(temp_dir.name, 'models.zip')
+    elif ckpt_path.suffix == '.zip':
+        ckpt_dir = temp_dir_path / 'models'
+        zip_path = temp_dir_path / 'models.zip'
         ckpt.save(zip_path)
 
         with zipfile.ZipFile(zip_path, mode='r') as z:
             z.extractall(ckpt_dir)
 
-        for root, _, fnames in os.walk(ckpt_dir):
-            ckpt_paths += [os.path.join(root, fname) for fname in fnames if fname.endswith('.pt')]
+        ensemble_ckpt_dirs = [ckpt_dir]
+        ensemble_names = [ckpt_name]
+
+    elif ckpt_path.name.endswith('.tar.gz'):
+        ckpt_dir = temp_dir_path / 'models'
+        tar_path = temp_dir_path / 'models.tar.gz'
+        ckpt.save(tar_path)
+
+        with tarfile.open(tar_path, 'r:gz') as tar:
+            tar.extractall(ckpt_dir)
+
+        ensemble_ckpt_dirs = list(ckpt_dir.iterdir())
+        ensemble_names = [ckpt_dir.name for ckpt_dir in ensemble_ckpt_dirs]
 
     else:
-        errors.append(f'Uploaded checkpoint(s) file must be either .pt or .zip but got {ckpt_ext}')
+        errors.append(f'Uploaded checkpoint(s) file must be either .pt or .zip or .tar.gz but got {ckpt_path.suffix}')
+        ensemble_ckpt_dirs = []
+        ensemble_names = []
 
     # Insert checkpoints into database
-    if len(ckpt_paths) > 0:
-        ckpt_args = load_args(ckpt_paths[0])
-        ckpt_id, new_ckpt_name = db.insert_ckpt(ckpt_name,
-                                                current_user,
-                                                ckpt_args.dataset_type,
-                                                ckpt_args.epochs,
-                                                len(ckpt_paths),
-                                                ckpt_args.train_data_size)
+    for ensemble_ckpt_dir, ensemble_name in zip(ensemble_ckpt_dirs, ensemble_names):
+        ckpt_paths = list(ensemble_ckpt_dir.glob('**/*.pt'))
 
-        for ckpt_path in ckpt_paths:
-            model_id = db.insert_model(ckpt_id)
-            model_path = os.path.join(app.config['CHECKPOINT_FOLDER'], f'{model_id}.pt')
+        if len(ckpt_paths) > 0:
+            ckpt_args = load_args(ckpt_paths[0])
+            ckpt_id, new_ckpt_name = db.insert_ckpt(ensemble_name,
+                                                    current_user,
+                                                    ckpt_args.dataset_type,
+                                                    ckpt_args.epochs,
+                                                    len(ckpt_paths),
+                                                    ckpt_args.train_data_size)
 
-            if ckpt_name != new_ckpt_name:
-                warnings.append(name_already_exists_message('Checkpoint', ckpt_name, new_ckpt_name))
+            for ckpt_path in ckpt_paths:
+                model_id = db.insert_model(ckpt_id)
+                model_path = Path(app.config['CHECKPOINT_FOLDER']) / f'{model_id}.pt'
 
-            shutil.copy(ckpt_path, model_path)
+                if ensemble_name != new_ckpt_name:
+                    warnings.append(name_already_exists_message('Checkpoint', ckpt_name, new_ckpt_name))
+
+                shutil.copy(ckpt_path, model_path)
 
     temp_dir.cleanup()
 

@@ -22,6 +22,7 @@ class WebArgs(Tap):
     root_folder: str | None = None  # Root folder where web data and checkpoints will be saved (defaults to chemprop/web/app)
     allow_checkpoint_upload: bool = False  # Whether to allow checkpoint uploads
     max_molecules: int | None = None  # Maximum number of molecules for which to allow predictions
+    no_cache: bool = False  # Whether to turn off caching
 
 
 def setup_web(
@@ -29,7 +30,8 @@ def setup_web(
         initdb: bool = False,
         root_folder: str | None = None,
         allow_checkpoint_upload: bool = False,
-        max_molecules: int | None = None
+        max_molecules: int | None = None,
+        no_cache: bool = False
 ) -> None:
     app.config['DEMO'] = demo
     app.config['ALLOW_CHECKPOINT_UPLOAD'] = allow_checkpoint_upload
@@ -51,9 +53,10 @@ def setup_web(
             db.init_db()
             print("-- INITIALIZED DATABASE --")
 
-    # Turn off caching to save memory (assumes no training, only prediction)
-    set_cache_graph(False)
-    set_cache_mol(False)
+    # Turn off caching to save memory (at the cost of speed when using ensembles)
+    if no_cache:
+        set_cache_graph(False)
+        set_cache_mol(False)
 
 
 def chemprop_web() -> None:
@@ -70,7 +73,8 @@ def chemprop_web() -> None:
         initdb=args.initdb,
         root_folder=args.root_folder,
         allow_checkpoint_upload=args.allow_checkpoint_upload,
-        max_molecules=args.max_molecules
+        max_molecules=args.max_molecules,
+        no_cache=args.no_cache
     )
 
     # Run web app
