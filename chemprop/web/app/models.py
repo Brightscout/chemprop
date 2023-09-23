@@ -33,6 +33,14 @@ def compute_drugbank_percentile(task_name: str, predictions: np.ndarray) -> np.n
     return percentileofscore(DRUGBANK_DF[task_name], predictions)
 
 
+def get_drugbank_dataframe() -> pd.DataFrame:
+    """Get the DrugBank reference DataFrame."""
+    if len(DRUGBANK_DF) == 0:
+        load_drugbank_reference()
+
+    return DRUGBANK_DF
+
+
 def load_models() -> None:
     """Loads all of the models in the database into memory.
 

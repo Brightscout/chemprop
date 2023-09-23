@@ -1,28 +1,33 @@
 """Defines a number of routes/views for the flask app."""
 
-from functools import wraps
 import io
 import os
 import sys
 import shutil
-from tempfile import TemporaryDirectory, NamedTemporaryFile
 import time
 import multiprocessing as mp
 import tarfile
 import zipfile
+from functools import wraps
 from pathlib import Path
+from tempfile import TemporaryDirectory, NamedTemporaryFile
 from typing import Callable, List, Tuple
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from chemfunc.molecular_fingerprints import compute_fingerprints
 from flask import json, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
 from rdkit import Chem
+from scipy.stats import gaussian_kde
 from tqdm import tqdm
 from werkzeug.utils import secure_filename
 
 from chemprop.web.app import app, db
-from chemprop.web.app.models import compute_drugbank_percentile, get_models_dict
+from chemprop.web.app.models import compute_drugbank_percentile, get_drugbank_dataframe, get_models_dict
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
@@ -462,6 +467,8 @@ def predict():
         return render_predict(errors=[f'Received too many molecules. '
                                       f'Maximum number of molecules is {app.config["MAX_MOLECULES"]:,}.'])
 
+    # TODO: validate that SMILES are valid, remove invalid ones, and put a warning if there are invalid ones
+
     # Make predictions
     task_names, preds = predict_all_models(smiles=smiles)
     num_tasks = len(task_names)
@@ -497,6 +504,31 @@ def predict():
     invalid_smiles_warning = 'Invalid SMILES String'
     preds = [pred if pred is not None else [invalid_smiles_warning] * num_tasks for pred in preds]
 
+    # Create DrugBank reference plot
+    x_task, y_task = 'HIA_Hou', 'BBB_Martins'
+    drugbank = get_drugbank_dataframe()
+    xy = np.vstack([drugbank[x_task], drugbank[y_task]])
+    density = gaussian_kde(xy)(xy)
+    sns.scatterplot(
+        x=drugbank[x_task],
+        y=drugbank[y_task],
+        hue=density,
+        edgecolor=None,
+        palette="viridis",
+        legend=False,
+    )
+    sns.scatterplot(
+        x=preds_df[x_task], y=preds_df[y_task], color="red", marker="*", s=200
+    )
+    plt.title("New Molecules vs DrugBank Approved")
+
+    # Save plot to pass to front end
+    buf = io.BytesIO()
+    plt.savefig(buf, format="svg")
+    plt.close()
+    buf.seek(0)
+    drugbank_plot = buf.getvalue().decode('utf-8')
+
     return render_predict(predicted=True,
                           smiles=smiles,
                           num_smiles=min(10, len(smiles)),
@@ -505,6 +537,7 @@ def predict():
                           num_tasks=num_tasks,
                           preds=preds,
                           drugbank_percentiles=drugbank_percentiles,
+                          drugbank_plot=drugbank_plot,
                           warnings=["List contains invalid SMILES strings"] if None in preds else None,
                           errors=["No SMILES strings given"] if len(preds) == 0 else None)
 
