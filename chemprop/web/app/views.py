@@ -27,7 +27,12 @@ from tqdm import tqdm
 from werkzeug.utils import secure_filename
 
 from chemprop.web.app import app, db
-from chemprop.web.app.models import compute_drugbank_percentile, get_drugbank_dataframe, get_models_dict
+from chemprop.web.app.models import (
+    compute_drugbank_percentile,
+    get_drugbank_dataframe,
+    get_drugbank_unique_atc_codes,
+    get_models_dict
+)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
@@ -48,6 +53,7 @@ from chemprop.utils import create_logger, load_args
 
 TRAINING = 0
 PROGRESS = mp.Value('d', 0.0)
+PREDS_DF = pd.DataFrame()
 
 
 def check_not_demo(func: Callable) -> Callable:
@@ -338,6 +344,7 @@ def render_predict(**kwargs):
                            checkpoint_upload_warnings=checkpoint_upload_warnings,
                            checkpoint_upload_errors=checkpoint_upload_errors,
                            users=db.get_all_users(),
+                           drugbank_atc_codes=['all'] + get_drugbank_unique_atc_codes(),
                            **kwargs)
 
 
@@ -435,6 +442,71 @@ def predict_all_models(
     return all_task_names, all_preds
 
 
+def create_drugbank_reference_plot(
+        preds_df: pd.DataFrame,
+        x_task: str = 'HIA_Hou',
+        y_task: str = 'BBB_Martins',
+        atc_code: str = 'all'
+) -> str:
+    """Creates a 2D scatter plot of the DrugBank reference set vs the new set of molecules on two tasks.
+
+    :param preds_df: A DataFrame containing the predictions on the new molecules.
+    :param x_task: The name of the task to plot on the x-axis.
+    :param y_task: The name of the task to plot on the y-axis.
+    :param atc_code: The ATC code to filter the DrugBank reference set by.
+    :return: A string containing the SVG of the plot.
+    """
+    # Get DrugBank reference, optionally filtered ATC code
+    drugbank = get_drugbank_dataframe(atc_code=atc_code)
+
+    # Compute density of DrugBank molecules
+    xy = np.vstack([drugbank[x_task], drugbank[y_task]])
+
+    try:
+        density = gaussian_kde(xy)(xy)
+    except np.linalg.LinAlgError:
+        density = None
+
+    # Scatter plot of DrugBank molecules with density coloring
+    sns.scatterplot(
+        x=drugbank[x_task],
+        y=drugbank[y_task],
+        hue=density,
+        edgecolor=None,
+        palette="viridis",
+        legend=False,
+    )
+
+    # Scatter plot of new molecules
+    if len(preds_df) > 0:
+        sns.scatterplot(
+            x=preds_df[x_task], y=preds_df[y_task], color="red", marker="*", s=200
+        )
+
+    # Title
+    plt.title("New Molecules vs DrugBank Approved" + (f"\nATC = {atc_code}" if atc_code != "all" else ""))
+
+    # Save plot as svg to pass to frontend
+    buf = io.BytesIO()
+    plt.savefig(buf, format="svg")
+    plt.close()
+    buf.seek(0)
+    drugbank_svg = buf.getvalue().decode('utf-8')
+
+    return drugbank_svg
+
+
+@app.route('/drugbank_plot', methods=['GET'])
+def drugbank_plot():
+    # Get requested ATC code
+    atc_code = request.args.get('atc_code', default='all', type=str)
+
+    # Create DrugBank reference plot with ATC code
+    drugbank_plot = create_drugbank_reference_plot(preds_df=PREDS_DF, atc_code=atc_code)
+
+    return jsonify({"svg": drugbank_plot})
+
+
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
     """Renders the predict page and makes predictions if the method is POST."""
@@ -493,8 +565,9 @@ def predict():
 
     # TODO: Delete predictions when no longer needed
     # TODO: Check if this works for multiple users at once when using same predictions filename
-    preds_df = pd.DataFrame(preds_dicts)
-    preds_df.to_csv(os.path.join(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME']))
+    global PREDS_DF
+    PREDS_DF = pd.DataFrame(preds_dicts)
+    PREDS_DF.to_csv(os.path.join(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME']))
 
     # Handle invalid SMILES
     if all(p is None for p in preds):
@@ -505,29 +578,7 @@ def predict():
     preds = [pred if pred is not None else [invalid_smiles_warning] * num_tasks for pred in preds]
 
     # Create DrugBank reference plot
-    x_task, y_task = 'HIA_Hou', 'BBB_Martins'
-    drugbank = get_drugbank_dataframe()
-    xy = np.vstack([drugbank[x_task], drugbank[y_task]])
-    density = gaussian_kde(xy)(xy)
-    sns.scatterplot(
-        x=drugbank[x_task],
-        y=drugbank[y_task],
-        hue=density,
-        edgecolor=None,
-        palette="viridis",
-        legend=False,
-    )
-    sns.scatterplot(
-        x=preds_df[x_task], y=preds_df[y_task], color="red", marker="*", s=200
-    )
-    plt.title("New Molecules vs DrugBank Approved")
-
-    # Save plot to pass to front end
-    buf = io.BytesIO()
-    plt.savefig(buf, format="svg")
-    plt.close()
-    buf.seek(0)
-    drugbank_plot = buf.getvalue().decode('utf-8')
+    drugbank_plot = create_drugbank_reference_plot(preds_df=PREDS_DF)
 
     return render_predict(predicted=True,
                           smiles=smiles,

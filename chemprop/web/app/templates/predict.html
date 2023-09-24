@@ -211,6 +211,58 @@
             {% endfor %}
         {% endif %}
 
+        <div class="dropdown">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                Select ATC Code
+            </button>
+            <div class="dropdown-menu">
+                <input class="form-control" id="atc-selection" type="text" placeholder="Search..">
+                <li>
+                    {% for atc_code in drugbank_atc_codes %}
+                        <a class="dropdown-item" href="#">{{ atc_code }}</a>
+                    {% endfor %}
+                </li>
+            </div>
+        </div>
+        <script>
+        $(document).ready(function(){
+            $("#atc-selection").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $(".dropdown-menu li a").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            function clickATC(atc_code) {
+                $.ajax({
+                    url: "/drugbank_plot?atc_code=" + atc_code,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.svg) {
+                            document.getElementById("drugbank-plot").innerHTML = response.svg;
+                        }
+                    },
+                    error: function(error) {
+                        console.error("Failed to fetch DrugBank SVG:", error);
+                    }
+                });
+            }
+
+            $('.dropdown-menu li a').click(function() {
+                var selectedValue = $(this).text();
+                clickATC(selectedValue);
+            });
+        });
+        </script>
+
+        <br>
+        <br>
+
+        <div id="drugbank-plot" style="flex: 1; width: 100%;">
+            {{ drugbank_plot|safe }}
+        </div>
+
         {% if predicted %}
             <hr>
 
@@ -245,14 +297,10 @@
             <br>
             <br>
 
-            <div style="flex: 1; width: 100%;">
-                {{ drugbank_plot|safe }}
-            </div>
-
             <style>
                 /* Add styles for the table */
                 table {
-                    min-width: 300px
+                    min-width: 300px;
                     width: 30%; /* Adjust the width as needed */
                     border-collapse: collapse;
                     background-color: #f2f2f2;
