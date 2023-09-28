@@ -211,6 +211,7 @@
             {% endfor %}
         {% endif %}
 
+
         <div class="dropdown">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 Select ATC Code
@@ -263,6 +264,8 @@
             {{ drugbank_plot|safe }}
         </div>
 
+        
+
         {% if predicted %}
             <hr>
 
@@ -301,7 +304,7 @@
                 /* Add styles for the table */
                 table {
                     min-width: 300px;
-                    width: 30%; /* Adjust the width as needed */
+                    /* width: 30%;  */
                     border-collapse: collapse;
                     background-color: #f2f2f2;
                 }
@@ -325,7 +328,17 @@
                     border-radius: 8px;
                     padding: 5px;
                     margin-left: 10px;
-                    background-color: #f8f4f4; 
+                    background-color: #f8f4f4;
+                    float:right; 
+                }
+
+                .mol-image2 {
+                    display: inline-block;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 5px;
+                    margin-left: 10px;
+                    background-color: #f8f4f4;
                 }
 
                 .collapse {
@@ -378,104 +391,202 @@
                     <li class="index" data-index="{{ '%0.4f'|format(preds[smiles_index][0]) }}">
                         <div>
                             <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
-                                <strong>Molecule {{ smiles_index + 1 }}  </strong>
+                                <strong>Molecule {{ smiles_index + 1 }}: {{ smiles[smiles_index] }}  </strong>
+                                <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
                             </button>
                         </div>
 
                         <div id="collapseInfo{{ smiles_index }}" class="collapse">
                             <!-- Display PubChem link and molecule image here -->
                             <!-- <br> -->
-                            <strong>SMILES:</strong> {{ smiles[smiles_index] }}
+                            <!-- <strong>SMILES:</strong> {{ smiles[smiles_index] }}
                             <br>
-                            <br>
-                            <!-- <div id="pubchem-link{{ smiles_index }}"></div> -->
-                            <br>
+                            <br> -->
+                            <div id="pubchem-link{{ smiles_index }}"></div>
+                            <!-- <br>
                             
-                            <br>
+                            <br> -->
                             <br>
 
-                            <!-- List of PRC-AUC values that match the key -->
-                            {% set PRC_values = 
-                                [0.1188409991,
-                                0.5353277512,
-                                0.777980993,
-                                0.6980331362,
-                                0,
-                                0.1437211135,
-                                0,
-                                0,
-                                0.4463602219,
-                                0.2229313881,
-                                0.4819964549,
-                                0.4978159119,
-                                0.4526238289,
-                                0.2024394062,
-                                0.5448202671,
-                                0.3629974771,
-                                0.6253267119,
-                                0,
-                                0.6525598343,
-                                0.0483338229,
-                                0.4706790958,
-                                0.9000065679,
-                                0,
-                                0,
-                                0,
-                                0.8473279693,
-                                0.659805538,
-                                0,
-                                0.6969335515,
-                                0,
-                                0]
-                            %}
-                            <!-- List of ROC-AUC values that match the key -->
-                            {% set ROC_values = 
-                                [0.5771186173,
-                                0.477179054,
-                                0.510707943,
-                                0.4248628287,
-                                0,
-                                0.4219002579,
-                                0,
-                                0,
-                                0.5186075715,
-                                0.5094745814,
-                                0.664129183,
-                                0.5746623517,
-                                0.663935029,
-                                0.5430707527,
-                                0.5186791158,
-                                0.4008792081,
-                                0.6817951526,
-                                0,
-                                0.4191896506,
-                                0.5336169739,
-                                0.4715895225,
-                                0.5535767771,
-                                0,
-                                0,
-                                0,
-                                0.5050204236,
-                                0.6620365376,
-                                0,
-                                0.4707517967,
-                                0,
-                                0]
-                                %}
+                            {% set prop_units = ['kJ/mol', '%', 'log(cm/s)', 'log-ratio', '%', 'log(mol/L)', 'L/kg', '%', '%', 
+                            '%', '%', '%', '%', '%', '%', '%', '%', 'hr', 'uL min^-1 (106 cells)^-1', 'mL min^-1 g^-1', 
+                            '-log(mol/kg)', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%'] %}
+                                                        
+                            {% set adsorption_list = ['Bioavailability_Ma', 'Caco2_Wang', 'HIA_Hou', 'HydrationFreeEnergy_FreeSolv', 
+                            'Lipophilicity_AstraZeneca', 'PAMPA_NCATS' 'Pgp_Broccatelli', 'Solubility_AqSolDB'] %}
+
+                            {% set adsorption_names = ['Bioavailability', 'Cell Effective Permeability', 'Human Intestinal Adsorption',
+                            'Hydration Free Energy', 'Lipophilicity', 'PAMPA Permeability' 'P-glycoprotein Inhibition', 'Solubility'] %}
+
+                            {% set adsorption_urls = [
+                                'https://tdcommons.ai/single_pred_tasks/adme/#bioavailability-ma-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#caco-2-cell-effective-permeability-wang-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#hia-human-intestinal-absorption-hou-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#hydration-free-energy-freesolv',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#lipophilicity-astrazeneca',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#pampa-permeability-ncats',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#pgp-p-glycoprotein-inhibition-broccatelli-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#solubility-aqsoldb'
+                                ] %}
+
+                            {% set adsorption_multitask_values = [
+                                0.8982852555,
+                                0.744364201, 
+                                0.9966067076,
+                                0.9192450003, 
+                                0.7460474618, 
+                                0.9482661503, 
+                                0.959242927, 
+                                0.8142766273 
+                                ] %}
+
+                            {% set adsorption_size = [
+                                640,
+                                906,
+                                578,
+                                642,
+                                4200,
+                                2034,
+                                1212,
+                                9982
+                                ] %}
+
+                            {% set distribution_list = ['BBB_Martins', 'PPBR_AZ', 'VDss_Lombardo'] %}
+
+                            {% set distribution_names = ['Blood Brain Barrier', 'Plasma Protein Binding Rate', 'Volumn of Distribution at steady state'] %}
+
+                            {% set distribution_urls = [
+                                'https://tdcommons.ai/single_pred_tasks/adme/#bbb-blood-brain-barrier-martins-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#ppbr-plasma-protein-binding-rate-astrazeneca',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#vdss-volumn-of-distribution-at-steady-state-lombardo-et-al'
+                                ] %}
+
+                            {% set distribution_multitask_values = [
+                                0.9780836093, 
+                                0.4620890511, 
+                                -0.6101450267 
+                                ] %}
+
+                            {% set distribution_size = [
+                                1975,
+                                1614,
+                                1111
+                                ] %}
+
+                            {% set metabolism_list = ['CYP1A2_Veith', 'CYP2C9_Substrate_CarbonMangels', 'CYP2C9_Veith', 'CYP2C19_Veith', 
+                            'CYP2D6_Substrate_CarbonMangels', 'CYP2D6_Veith', 'CYP3A4_Substrate_CarbonMangels', 'CYP3A4_Veith'] %}
+
+                            {% set metabolism_names = ['CYP1A2 Inhibition', 'CYP2C9 Substrate', 'CYP2C9 Inhibition', 'CYP2C19 Inhibition', 
+                            'CYP2D6 Substrate', 'CYP2D6 Inhibition', 'CYP3A4 Substrate', 'CYP3A4 Inhibition'] %}
+
+                            {% set metabolism_urls = [
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-1a2-inhibition-veith-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp2c9-substrate-carbon-mangels-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c9-inhibition-veith-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c19-inhibition-veith-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp2d6-substrate-carbon-mangels-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2d6-inhibition-veith-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp3a4-substrate-carbon-mangels-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-3a4-inhibition-veith-et-al'
+                                ] %}
+
+                            {% set metabolism_multitask_values = [
+                                0.934630479, 
+                                0.3002083, 
+                                0.8090113784, 
+                                0.8823827106, 
+                                0.5738635639, 
+                                0.7342224231, 
+                                0.7014175322, 
+                                0.8815952572 
+                                ] %}
+
+                            {% set metabolism_size = [
+                                12579,
+                                666,
+                                12092,
+                                12665,
+                                664,
+                                13130,
+                                667,
+                                12328
+                                ] %}
+
+                            {% set excretion_list = ['Clearance_Hepatocyte_AZ', 'Clearance_Microsome_AZ', 'Half_Life_Obach'] %}
                             
-                            <!-- Key for the table each model is assigned to 0 = adsorption, 1 = distribution etc -->
-                            {% set table_assignments = [4, 4, 1, 0, 0, 4, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 4, 3, 4, 4, 4, 0, 0, 4, 0, 0, 0, 1, 4, 0, 1] %}
-                        
+                            {% set excretion_names = ['Clearance (Hepatocyte)', 'Clearance (Microsome)', 'Half_Life'] %}
+
+                            {% set excretion_urls = [
+                                'https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca',
+                                'https://tdcommons.ai/single_pred_tasks/adme/#half-life-obach-et-al'
+                                ] %}
+
+                            {% set excretion_multitask_values = [
+                                0.3022337749, 
+                                0.3003254935, 
+                                -1.551572848 
+                                ] %}
+
+                            {% set excretion_size = [
+                                1020,
+                                1102,
+                                665
+                                ] %}
+
+                            {% set toxicity_list = ['ClinTox', 'AMES', 'Carcinogens_Lagunin', 'DILI', 'hERG_Karim', 'LD50_Zhu', 'Skin Reaction'] %}
+
+                            {% set toxicity_names = ['ClinTox', 'Ames Mutagenicity', 'Carcinogens', 'Drug Induced Liver Injury', 'hERG Karim', 'Acute Toxicity LD50', 'Skin Reaction'] %}
+
+                            {% set toxicity_urls = [
+                                'https://tdcommons.ai/single_pred_tasks/tox/#clintox',
+                                'https://tdcommons.ai/single_pred_tasks/tox/#ames-mutagenicity',
+                                'https://tdcommons.ai/single_pred_tasks/tox/#carcinogens',
+                                'https://tdcommons.ai/single_pred_tasks/tox/#dili-drug-induced-liver-injury',
+                                'https://tdcommons.ai/single_pred_tasks/tox/#herg-karim-et-al',
+                                'https://tdcommons.ai/single_pred_tasks/tox/#acute-toxicity-ld50',
+                                'https://tdcommons.ai/single_pred_tasks/tox/#skin-reaction'
+                                ] %}
+
+                            {% set toxicity_multitask_values = [
+                                0.4253902419, 
+                                0.9122659883,
+                                0.7284862154,
+                                0.8583792768, 
+                                0.9259686215, 
+                                0.6125000012, 
+                                0.8673169073 
+                                ] %}
+
+                            {% set toxicity_size = [
+                                1459,
+                                7255,
+                                278,
+                                475,
+                                648,
+                                7342,
+                                404
+                                ] %}
+                            
+                            {% set counter = namespace(value=0) %}
+
+                            {% set ranges = ['N/A', 'N/A', 'Optimal: >-5.15', 'Optimal: 1-3', 'Optimal: >=80%', 'Optimal: Soluble -20, slightly soluble -4-2, insoluble <-4', 'Optimal: 0.04~20', 'Optimal: <= 30%', 'Optimal: <= 90%', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'Optimal: <=30%', 'N/A', 'Optimal: <= 30%', 'Optimal: <= 30%', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A'] %}
+                            
                             <div style="display: flex; flex-wrap: wrap;">
+                                
+
                                 <style>
                                     .table_header {
                                         color: #007bff
                                     }
+                                    .data_link {
+                                        color: black
+                                    }
                                 </style>
                                 
-                                <div style="flex: 1; width: 100%;">
-                                    <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
-                                </div>
+                                <!-- <div style="flex: 1; width: 100%;">
+                                    <div id="molecule-image2{{ smiles_index }}" class="mol-image2"></div>
+                                </div> -->
 
                                 <div style="flex: 1; width: 100%;">
                                     <h3 id="table_header">Absorption</h3>
@@ -484,24 +595,254 @@
                                             <tr>
                                                 <th>Model</th>
                                                 <th>Prediction</th>
+                                                <th>DrugBank Percentile</th>
+                                                <th>Unit</th>
                                                
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for j in range(num_tasks) %}
-                                                {% if table_assignments[j] == 0 %}
+                                                {% if task_names[j] in adsorption_list %}
+
                                                     <tr>
                                                         <td><strong>
-                                                            {{ task_names[j] }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" 
-                                                                title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%">
+                                                            <a href={{ adsorption_urls[adsorption_list.index(task_names[j])] }} class="data_link">
+                                                                {{ adsorption_names[adsorption_list.index(task_names[j])] }}
+                                                            </a>
+                                                            <span 
+                                                                class="glyphicon glyphicon-question-sign" 
+                                                                style="font-size:15px" data-toggle="tooltip" 
+                                                                data-placement="right" 
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(adsorption_multitask_values[adsorption_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(adsorption_size[adsorption_list.index(task_names[j])]) }}">
                                                             </span>    
-                                                        </strong></td>                                                        <td>
-                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                        </strong></td>                                                        
+                                                        {% if task_names[j] == 'Lipophilicity_AstraZeneca' %}
+                                                            {% if preds[smiles_index][j] >= -5.15 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% elif task_names[j] == 'Solubility_AqSolDB' %}
+                                                            {% if preds[smiles_index][j] <= 3 and preds[smiles_index][j] >= 1 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% elif task_names[j] == 'Bioavailability_Ma' %}
+                                                            {% if preds[smiles_index][j] >= 80 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% elif task_names[j] == 'HIA_Hou' %}
+                                                            {% if preds[smiles_index][j] < -4 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% elif preds[smiles_index][j] >= -4 and preds[smiles_index][j] >= 2  %}
+                                                                <td style="background-color:#dfec8d">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <td>
+                                                                {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                {% if ranges[counter.value] != 'N/A' %} 
+                                                                    <span 
+                                                                        class="glyphicon glyphicon-exclamation-sign" 
+                                                                        style="font-size:15px" data-toggle="tooltip" 
+                                                                        data-placement="right" 
+                                                                        title="{{ ranges[counter.value] }}">
+                                                                    </span>
+                                                                {% endif %}
+                                                                {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    <span 
+                                                                        class="glyphicon glyphicon-warning-sign" 
+                                                                        style="font-size:15px" data-toggle="tooltip" 
+                                                                        data-placement="right" 
+                                                                        title="Lower accuracy">
+                                                                    </span>
+                                                                {% endif %}
+                                                            </td>
+
+                                                        {% endif %}
+                                                        <td>
+                                                            {{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}%
+                                                        <td>
+                                                            {{ prop_units[counter.value] }}
+                                                            {% set counter.value = counter.value + 1 %}
                                                         </td>
                                                         
                                                     </tr>
+                                                    
                                                 {% endif %}
                                             {% endfor %}
                                         </tbody>
@@ -515,25 +856,199 @@
                                             <tr>
                                                 <th>Model</th>
                                                 <th>Prediction</th>
+                                                <th>DrugBank Percentile</th>
+                                                <th>Unit</th>
                                                 
                                             </tr>
                                         </thead>
                                         <tbody>
+                                          
                                             {% for j in range(num_tasks) %}
-                                                {% if table_assignments[j] == 1 %}
+                                                {% if task_names[j] in distribution_list %}
+                                                   
                                                     <tr>
+                                                        
                                                         <td><strong>
-                                                            {{ task_names[j] }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
-                                                        </strong></td>                                                        <td>
-                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                            <a href={{ distribution_urls[distribution_list.index(task_names[j])] }} class="data_link">
+                                                                {{ distribution_names[distribution_list.index(task_names[j])] }}
+                                                            </a>
+                                                            <span 
+                                                                class="glyphicon glyphicon-question-sign" 
+                                                                style="font-size:15px" data-toggle="tooltip" 
+                                                                data-placement="right" 
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(distribution_multitask_values[distribution_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(distribution_size[distribution_list.index(task_names[j])]) }}">
+                                                            </span>     
+                                                        </strong></td>
+                                                        
+                                                        {% if task_names[j] == 'BBB_Martins' %}
+                                                            {% if preds[smiles_index][j] <= 0.9 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% elif task_names[j] == 'PPBR_AZ' %}
+                                                            {% if preds[smiles_index][j] <= 21 and preds[smiles_index][j] >= 0.04 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% elif task_names[j] == 'VDss_Lombardo' %}
+                                                            {% if preds[smiles_index][j] <= 30 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <td>
+                                                                {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                {% if ranges[counter.value] != 'N/A' %} 
+                                                                    <span 
+                                                                        class="glyphicon glyphicon-exclamation-sign" 
+                                                                        style="font-size:15px" data-toggle="tooltip" 
+                                                                        data-placement="right" 
+                                                                        title="{{ ranges[counter.value] }}">
+                                                                    </span>
+                                                                {% endif %}
+                                                                {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    <span 
+                                                                        class="glyphicon glyphicon-warning-sign" 
+                                                                        style="font-size:15px" data-toggle="tooltip" 
+                                                                        data-placement="right" 
+                                                                        title="Lower accuracy">
+                                                                    </span>
+                                                                {% endif %}
+                                                            </td>
+
+                                                        {% endif %}
+                                                        
+                                                        <td>
+                                                            {{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}%
+                                                        </td>
+                                                        <td>
+                                                            {{ prop_units[counter.value] }}
+                                                            {% set counter.value = counter.value + 1 %}
                                                         </td>
                                                         
                                                     </tr>
                                                 {% endif %}
                                             {% endfor %}
                                         </tbody>
+                                        
                                     </table>
                                 </div>
 
@@ -544,19 +1059,53 @@
                                             <tr>
                                                 <th>Model</th>
                                                 <th>Prediction</th>
+                                                <th>DrugBank Percentile</th>
+                                                <th>Unit</th>
                                                
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for j in range(num_tasks) %}
-                                                {% if table_assignments[j] == 2 %}
+                                                {% if task_names[j] in metabolism_list %}
                                                     <tr>
                                                         <td><strong>
-                                                            {{ task_names[j] }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
-                                                        </strong></td>                                                        <td>
+                                                            <a href={{ metabolism_urls[metabolism_list.index(task_names[j])] }} class="data_link">
+                                                                {{ metabolism_names[metabolism_list.index(task_names[j])] }}
+                                                            </a>
+                                                            
+                                                            <span 
+                                                                class="glyphicon glyphicon-question-sign" 
+                                                                style="font-size:15px" data-toggle="tooltip" 
+                                                                data-placement="right" 
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(metabolism_multitask_values[metabolism_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(metabolism_size[metabolism_list.index(task_names[j])]) }}">
+                                                            </span>    
+                                                        </strong></td>                                                        
+                                                        <td>
                                                             {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                            {% if ranges[counter.value] != 'N/A' %} 
+                                                                <span 
+                                                                    class="glyphicon glyphicon-exclamation-sign" 
+                                                                    style="font-size:15px" data-toggle="tooltip" 
+                                                                    data-placement="right" 
+                                                                    title="{{ ranges[counter.value] }}">
+                                                                </span>
+                                                            {% endif %}
+                                                            {% if metabolism_multitask_values[metabolism_list.index(task_names[j])] < 0.6 %}
+                                                                <span 
+                                                                    class="glyphicon glyphicon-warning-sign" 
+                                                                    style="font-size:15px" data-toggle="tooltip" 
+                                                                    data-placement="right" 
+                                                                    title="Lower accuracy">
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}%
+                                                        </td>
+                                                        <td>
+                                                            {{ prop_units[counter.value] }}
+                                                            {% set counter.value = counter.value + 1 %}
                                                         </td>
                                                         
                                                     </tr>
@@ -566,6 +1115,8 @@
                                     </table>
                                 </div>
 
+                                
+
                                 <div style="flex: 1; width: 100%;">
                                     <h3 id="table_header">Excretion</h3>
                                     <table style="width: 90%; margin: 10px;">
@@ -573,19 +1124,53 @@
                                             <tr>
                                                 <th>Model</th>
                                                 <th>Prediction</th>
+                                                <th>DrugBank Percentile</th>
+                                                <th>Unit</th>
                                                 
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for j in range(num_tasks) %}
-                                                {% if table_assignments[j] == 3 %}
+                                                {% if task_names[j] in excretion_list %}
                                                     <tr>
                                                         <td><strong>
-                                                            {{ task_names[j] }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
-                                                        </strong></td>                                                        <td>
+                                                            <a href={{ excretion_urls[excretion_list.index(task_names[j])] }} class="data_link">
+                                                                {{ excretion_names[excretion_list.index(task_names[j])] }}
+                                                            </a>
+                                                           
+                                                            <span 
+                                                                class="glyphicon glyphicon-question-sign" 
+                                                                style="font-size:15px" data-toggle="tooltip" 
+                                                                data-placement="right" 
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(excretion_multitask_values[excretion_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(excretion_size[excretion_list.index(task_names[j])]) }}">
+                                                            </span>        
+                                                        </strong></td>                                                        
+                                                        <td>
                                                             {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                            {% if ranges[counter.value] != 'N/A' %} 
+                                                                <span 
+                                                                    class="glyphicon glyphicon-exclamation-sign" 
+                                                                    style="font-size:15px" data-toggle="tooltip" 
+                                                                    data-placement="right" 
+                                                                    title="{{ ranges[counter.value] }}">
+                                                                </span>
+                                                            {% endif %}
+                                                            {% if excretion_multitask_values[excretion_list.index(task_names[j])] < 0.6 %}
+                                                                <span 
+                                                                    class="glyphicon glyphicon-warning-sign" 
+                                                                    style="font-size:15px" data-toggle="tooltip" 
+                                                                    data-placement="right" 
+                                                                    title="Lower accuracy">
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}%
+                                                        </td>
+                                                        <td>
+                                                            {{ prop_units[counter.value] }}
+                                                            {% set counter.value = counter.value + 1 %}
                                                         </td>
                                                         
                                                     </tr>
@@ -602,32 +1187,158 @@
                                             <tr>
                                                 <th>Model</th>
                                                 <th>Prediction</th>
+                                                <th>DrugBank Percentile</th>
+                                                <th>Unit</th>
                                                 
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for j in range(num_tasks) %}
-                                                {% if table_assignments[j] == 4 %}
+                                                {% if task_names[j] in toxicity_list %}
                                                     <tr>
                                                         <td><strong>
-                                                            {{ task_names[j] }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="Dataset PRC-AUC: {{ '%0.4g'|format(PRC_values[j]) }}% Dataset ROC-AUC: {{ '%0.4g'|format(ROC_values[j]) }}%"></span>    
+                                                            <a href={{ toxicity_urls[toxicity_list.index(task_names[j])] }} class="data_link">
+                                                                {{ toxicity_names[toxicity_list.index(task_names[j])] }}
+                                                            </a>
+                                                            <span 
+                                                                class="glyphicon glyphicon-question-sign" 
+                                                                style="font-size:15px" data-toggle="tooltip" 
+                                                                data-placement="right" 
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(toxicity_multitask_values[toxicity_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(toxicity_size[toxicity_list.index(task_names[j])]) }}">
+                                                            </span>    
                                                         </strong></td>
+                                                        {% if task_names[j] == 'Carcinogens_Lagunin' %}
+                                                            {% if preds[smiles_index][j] <= 0.3 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        {% elif task_names[j] == 'DILI' %}
+                                                            {% if preds[smiles_index][j] <= 0.3 %}
+
+                                                                <td style="background-color:#8dec9c">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            
+                                                            {% else %}
+                                                                <td style="background-color:#e68484">
+                                                                    {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                    {% if ranges[counter.value] != 'N/A' %} 
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-exclamation-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="{{ ranges[counter.value] }}">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                        <span 
+                                                                            class="glyphicon glyphicon-warning-sign" 
+                                                                            style="font-size:15px" data-toggle="tooltip" 
+                                                                            data-placement="right" 
+                                                                            title="Lower accuracy">
+                                                                        </span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            {% endif %}
+                                                        
+                                                        {% else %}
+                                                            <td>
+                                                                {{ '%0.4f'|format(preds[smiles_index][j]) }}
+                                                                {% if ranges[counter.value] != 'N/A' %} 
+                                                                    <span 
+                                                                        class="glyphicon glyphicon-exclamation-sign" 
+                                                                        style="font-size:15px" data-toggle="tooltip" 
+                                                                        data-placement="right" 
+                                                                        title="{{ ranges[counter.value] }}">
+                                                                    </span>
+                                                                {% endif %}
+                                                                {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                    <span 
+                                                                        class="glyphicon glyphicon-warning-sign" 
+                                                                        style="font-size:15px" data-toggle="tooltip" 
+                                                                        data-placement="right" 
+                                                                        title="Lower accuracy">
+                                                                    </span>
+                                                                {% endif %}
+                                                            </td>
+
+                                                        {% endif %}
                                                         <td>
-                                                            {{ '%0.4f'|format(preds[smiles_index][j]) }}
-                                                            <span class="glyphicon glyphicon-question-sign" style="font-size:15px" data-toggle="tooltip" data-placement="right" title="{{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}% of DrugBank Approved"></span>
+                                                            {{ '%0.2f'|format(drugbank_percentiles[smiles_index][j]) }}%
+                                                        </td>
+                                                        <td>
+                                                            {{ prop_units[counter.value] }}
+                                                            {% set counter.value = counter.value + 1 %}
                                                         </td>
                                                        
                                                     </tr>
                                                 {% endif %}
+                                                
                                             {% endfor %}
+                                            <!-- <p>Further ToxCast and Tox21 Results avaliable via download</p> -->
+                                            
                                         </tbody>
                                     </table>
                                 </div>
 
                             </div>
-                            
-                        
+
                         </div>
                         <br>
                         
@@ -650,8 +1361,13 @@
                                     }
                                     var imageDiv = document.getElementById("molecule-image{{ smiles_index }}");
                                     var imageUrl = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
-                                    var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="250" height="250">`;
+                                    var imageElement = `<img src="${imageUrl}" alt="Molecule Image" width="150" height="150">`;
                                     imageDiv.innerHTML = imageElement;
+
+                                    var imageDiv2 = document.getElementById("molecule-image2{{ smiles_index }}");
+                                    var imageUrl2 = `https://pubchem.ncbi.nlm.nih.gov/image/imagefly.cgi?cid=${cid}&width=300&height=300`;
+                                    var imageElement2 = `<img src="${imageUrl}" alt="Molecule Image" width="150" height="150">`;
+                                    imageDiv2.innerHTML2 = imageElement2;
                                 });
                             });
                         </script>
