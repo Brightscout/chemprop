@@ -580,12 +580,32 @@ def predict():
     # Create DrugBank reference plot
     drugbank_plot = create_drugbank_reference_plot(preds_df=PREDS_DF)
 
+    cat_file = 'chemprop/web/app/categoryData.csv'
+    cat_df = pd.read_csv(cat_file)
+
+    dist_file = 'chemprop/web/app/distData.csv'
+    dist_df = pd.read_csv(dist_file)
+
+    meta_file = 'chemprop/web/app/metabolismData.csv'
+    meta_df = pd.read_csv(meta_file)
+
+    excretion_file = 'chemprop/web/app/excretionData.csv'
+    excr_df = pd.read_csv(excretion_file)
+
+    tox_file = 'chemprop/web/app/toxData.csv'
+    tox_df = pd.read_csv(tox_file)
+
     return render_predict(predicted=True,
                           smiles=smiles,
                           num_smiles=min(10, len(smiles)),
                           show_more=max(0, len(smiles)-10),
                           task_names=task_names,
                           num_tasks=num_tasks,
+                          cat = cat_df,
+                          dist = dist_df,
+                          meta = meta_df,
+                          excr = excr_df,
+                          tox = tox_df,
                           preds=preds,
                           drugbank_percentiles=drugbank_percentiles,
                           drugbank_plot=drugbank_plot,
