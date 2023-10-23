@@ -30,6 +30,13 @@
             font-size: 24px;
             margin-bottom: 20px;
             color: #555;
+            margin-left: 13px;
+        }
+
+        h4 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #555;
         }
 
         p {
@@ -51,20 +58,47 @@
 <body>
     <div class="container" id="cont1">
         <h1>ADMET-AI Prediction</h1>
-        <h3>Information</h3>
+        <h4>Background</h4>
         <p>
-            Explanation about Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore 
-            et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut 
-            aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum 
-            dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia 
-            deserunt mollit anim id est laborum.
+            The evaluation of pharmacokinetics and toxicity is crucial for the design of new therapeutic candidates. 
+            In silico virtual screens and generative AI approaches output a vast number of molecules that must be 
+            filtered to a tractable number for synthesis and experimental validation.  An effective primary filter 
+            is needed for the evaluation of the candidate compounds for their <b>A</b>bsorption, <b>D</b>istribution, 
+            <b>M</b>etabolism, <b>E</b>xcretion, and <b>T</b>oxicity (ADMET) profiles. 
+        </p>
+        <p><b>ADMET-AI</b> provides a simple, fast, and accurate web interface to enable users to make ADMET predictions.
+             ADMET-AI uses a graph neural network called Chemprop-RDKit, which was trained on 41 ADMET datasets from
+              the <a href="https://tdcommons.ai/">Therapeutics Data Commons</a> (TDC).  ADMET-AI’s Chemprop-RDKit model has the highest average rank on the
+               TDC ADMET Benchmark Group <a href="https://tdcommons.ai/benchmark/admet_group/overview/">Leaderboard</a> and it is also currently the fastest web-based ADMET predictor.</p>
+        <p>
+            The details regarding the training and evaluation of the model are described in an article titled: A novel machine 
+            learning ADMET platform for evaluation of large-scale chemical libraries.
         </p>
         <p>
-            ADMET-AI is still in beta testing mode, more improvements and a paper will come out later
+        The predictor has been applied to evaluate cardiovascular drugs and drugs with cardiovascular effects in an article 
+        titled: ADMET profiles of known cardiovascular drugs accurately predicted using a novel machine learned Predictor.
         </p>
-        <p> Chemprop <a href="https://github.com/chemprop/chemprop"> Code</a> and <a href="https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237"> Paper</a>.</p>
-        <p>  <a href="https://www.cell.com/cell/fulltext/S0092-8674(20)30102-1"> Antibiotics</a> and <a href="https://tdcommons.ai/"> TDC</a> Information.</p>
+        <!-- <p> Chemprop <a href="https://github.com/chemprop/chemprop"> Code</a> and <a href="https://pubs.acs.org/doi/full/10.1021/acs.jcim.9b00237"> Paper</a>.</p>
+        <p>  <a href="https://www.cell.com/cell/fulltext/S0092-8674(20)30102-1"> Antibiotics</a> and <a href="https://tdcommons.ai/"> TDC</a> Information.</p> -->
 
+        <br>
+
+        <h4>Use</h4>
+        <p>
+            ADMET predictions can be made for up to TODO molecules at a time by either (1) 
+            providing SMILES (one per line) in the text box, (2) uploading a CSV file with SMILES in the 
+            first column, or (3) drawing a molecule using the interactive tool and converting it to a SMILES. 
+            Making predictions takes roughly TODO seconds per molecule.
+        </p>
+        <p>
+            For regression ADMET properties, the property value is directly predicted with the units shown. For 
+            classification ADMET properties, the prediction value is the probability of the molecule having that 
+            property (e.g., probability of blood-brain barrier penetration). For context, the ADMET predictions are
+             compared to a set of 2,579 molecules from the DrugBank that have received regulatory approval, and the 
+             percentile of each prediction is shown with respect to this set of DrugBank molecules. This reference set 
+             can be filtered to a specific category of drugs for a more relevant comparison by selecting an <a href = "https://www.whocc.no/atc_ddd_index/">Anatomical 
+             Therapeutic Chemical</a> (ATC) code from the dropdown menu below.
+        </p>
     </div>
 </body>
 
@@ -77,7 +111,6 @@
     <div class="container" id="cont1">
         <style>
             body {
-                background-image: url('../static/images/icon_faded.png');
                 background-size: cover;
                 background-repeat: no-repeat;
                 background-attachment: fixed;
@@ -199,19 +232,11 @@
 
         <br>
 
-        {% if warnings %}
-            {% for warning in warnings %}
-                {{ warning_message(warning) }}
-            {% endfor %}
-        {% endif %}
-
-        {% if errors %}
-            {% for error in errors %}
-                {{ error_message(error) }}
-            {% endfor %}
-        {% endif %}
+        
+        
 
 
+        
         <div class="dropdown">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 Select ATC Code
@@ -271,33 +296,8 @@
 
             <a href="{{ url_for('download_predictions') }}"><button class="btn btn-default btn-md">Download Results</button></a>
 
-            
-
-            <!-- UNFINISHED: Sort Function -->
-            <!-- <button class="btn btn-default btn-md" onclick="SortData()">
-                Sort Predictions
-            </button>
-              
-            <script>
-                function comparator(a, b) {
-                    if (a.dataset.index < b.dataset.index)
-                        return -1;
-                    if (a.dataset.index > b.dataset.index)
-                        return 1;
-                    return 0;
-                }
-                  
-                // Function to sort Data
-                function SortData() {
-                    var indexes = document.querySelectorAll("[data-index]");
-                    var indexesArray = Array.from(indexes);
-                    let sorted = indexesArray.sort(comparator);
-                    sorted.forEach(e =>
-                        document.querySelector("#list").appendChild(e));
-                }
-            </script>   -->
-
             <br>
+            
             <br>
 
             <style>
@@ -307,6 +307,7 @@
                     /* width: 30%;  */
                     border-collapse: collapse;
                     background-color: #f2f2f2;
+                    border-color: #8dec9c;
                 }
 
                 th, td {
@@ -317,8 +318,8 @@
                 }
 
                 th {
-                    background-color: #12272b;
-                    color: white;
+                    background-color: #9c9c9c;
+                    color: rgb(23, 23, 23);
                 }
 
                 /* CSS for  image container */
@@ -358,7 +359,7 @@
                     padding-bottom: 10px;
                     padding-right: 15px;
                     padding-left: 15px;
-                    background-color: #d0ece4;
+                    background-color: #e5f6fc;
                     /* color: #007bff; */
                     text-decoration: none;
                 }
@@ -375,15 +376,6 @@
 
             </style>
             
-            <!-- <label for="models">Select Model for Sorting:</label>
-            <select name="models" id="models">
-                <option value="0">ClinTox</option>
-                <option value="1">Test</option>
-                <option value="2">Placeholder</option>
-                
-            </select> -->
-
-  
 
             <ul id="list">
                     {% for smiles_index in range(num_smiles) %}
@@ -410,167 +402,59 @@
 
                             {% set prop_units = ['kJ/mol', '%', 'log(cm/s)', 'log-ratio', '%', 'log(mol/L)', 'L/kg', '%', '%', 
                             '%', '%', '%', '%', '%', '%', '%', '%', 'hr', 'uL min^-1 (106 cells)^-1', 'mL min^-1 g^-1', 
-                            '-log(mol/kg)', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%'] %}
+                            '-log(mol/kg)', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%',  '%', '%', '%', '%', '%', '%', '%', '%', '%', '%'] %}
                                                         
                             {% set adsorption_list = ['Bioavailability_Ma', 'Caco2_Wang', 'HIA_Hou', 'HydrationFreeEnergy_FreeSolv', 
                             'Lipophilicity_AstraZeneca', 'PAMPA_NCATS' 'Pgp_Broccatelli', 'Solubility_AqSolDB'] %}
 
-                            {% set adsorption_names = ['Bioavailability', 'Cell Effective Permeability', 'Human Intestinal Adsorption',
-                            'Hydration Free Energy', 'Lipophilicity', 'PAMPA Permeability' 'P-glycoprotein Inhibition', 'Solubility'] %}
+                            
+                            {% set ads_name_list = cat['name'] %}
+                            {% set ads_multi_list = cat['multitask'] %}
+                            {% set ads_size_list = cat['size'] %}
+                            {% set ads_url_list = cat['url'] %}
+                            {% set ads_rank_list = cat['rank'] %}
 
-                            {% set adsorption_urls = [
-                                'https://tdcommons.ai/single_pred_tasks/adme/#bioavailability-ma-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#caco-2-cell-effective-permeability-wang-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#hia-human-intestinal-absorption-hou-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#hydration-free-energy-freesolv',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#lipophilicity-astrazeneca',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#pampa-permeability-ncats',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#pgp-p-glycoprotein-inhibition-broccatelli-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#solubility-aqsoldb'
-                                ] %}
 
-                            {% set adsorption_multitask_values = [
-                                0.8982852555,
-                                0.744364201, 
-                                0.9966067076,
-                                0.9192450003, 
-                                0.7460474618, 
-                                0.9482661503, 
-                                0.959242927, 
-                                0.8142766273 
-                                ] %}
+                            {% set dist_name_list = dist['name'] %}
+                            {% set dist_multi_list = dist['multitask'] %}
+                            {% set dist_size_list = dist['size'] %}
+                            {% set dist_url_list = dist['url'] %}
+                            {% set dist_rank_list = dist['rank'] %}
 
-                            {% set adsorption_size = [
-                                640,
-                                906,
-                                578,
-                                642,
-                                4200,
-                                2034,
-                                1212,
-                                9982
-                                ] %}
+                            {% set meta_name_list = meta['name'] %}
+                            {% set meta_multi_list = meta['multitask'] %}
+                            {% set meta_size_list = meta['size'] %}
+                            {% set meta_url_list = meta['url'] %}
+                            {% set meta_rank_list = meta['rank'] %}
+
+                            {% set excr_name_list = excr['name'] %}
+                            {% set excr_multi_list = excr['multitask'] %}
+                            {% set excr_size_list = excr['size'] %}
+                            {% set excr_url_list = excr['url'] %}
+                            {% set excr_rank_list = excr['rank'] %}
+
+                            {% set tox_name_list = tox['name'] %}
+                            {% set tox_multi_list = tox['multitask'] %}
+                            {% set tox_size_list = tox['size'] %}
+                            {% set tox_url_list = tox['url'] %}
+                            {% set tox_rank_list = tox['rank'] %}
 
                             {% set distribution_list = ['BBB_Martins', 'PPBR_AZ', 'VDss_Lombardo'] %}
-
-                            {% set distribution_names = ['Blood Brain Barrier', 'Plasma Protein Binding Rate', 'Volumn of Distribution at steady state'] %}
-
-                            {% set distribution_urls = [
-                                'https://tdcommons.ai/single_pred_tasks/adme/#bbb-blood-brain-barrier-martins-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#ppbr-plasma-protein-binding-rate-astrazeneca',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#vdss-volumn-of-distribution-at-steady-state-lombardo-et-al'
-                                ] %}
-
-                            {% set distribution_multitask_values = [
-                                0.9780836093, 
-                                0.4620890511, 
-                                -0.6101450267 
-                                ] %}
-
-                            {% set distribution_size = [
-                                1975,
-                                1614,
-                                1111
-                                ] %}
 
                             {% set metabolism_list = ['CYP1A2_Veith', 'CYP2C9_Substrate_CarbonMangels', 'CYP2C9_Veith', 'CYP2C19_Veith', 
                             'CYP2D6_Substrate_CarbonMangels', 'CYP2D6_Veith', 'CYP3A4_Substrate_CarbonMangels', 'CYP3A4_Veith'] %}
 
-                            {% set metabolism_names = ['CYP1A2 Inhibition', 'CYP2C9 Substrate', 'CYP2C9 Inhibition', 'CYP2C19 Inhibition', 
-                            'CYP2D6 Substrate', 'CYP2D6 Inhibition', 'CYP3A4 Substrate', 'CYP3A4 Inhibition'] %}
-
-                            {% set metabolism_urls = [
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-1a2-inhibition-veith-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp2c9-substrate-carbon-mangels-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c9-inhibition-veith-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c19-inhibition-veith-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp2d6-substrate-carbon-mangels-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2d6-inhibition-veith-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp3a4-substrate-carbon-mangels-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-3a4-inhibition-veith-et-al'
-                                ] %}
-
-                            {% set metabolism_multitask_values = [
-                                0.934630479, 
-                                0.3002083, 
-                                0.8090113784, 
-                                0.8823827106, 
-                                0.5738635639, 
-                                0.7342224231, 
-                                0.7014175322, 
-                                0.8815952572 
-                                ] %}
-
-                            {% set metabolism_size = [
-                                12579,
-                                666,
-                                12092,
-                                12665,
-                                664,
-                                13130,
-                                667,
-                                12328
-                                ] %}
-
                             {% set excretion_list = ['Clearance_Hepatocyte_AZ', 'Clearance_Microsome_AZ', 'Half_Life_Obach'] %}
+
+                            {% set toxicity_list = ['ClinTox', 'AMES', 'Carcinogens_Lagunin', 'DILI', 'hERG', 'LD50_Zhu', 'Skin_Reaction',
+                            'NR-AR-LBD', 'NR-AR', 'NR-AhR', 'NR-Aromatase', 'NR-ER-LBD', 'NR-ER', 'NR-PPAR-gamma',
+                            'SR-ARE', 'SR-ATAD5', 'SR-HSE', 'SR_MMP', 'SR-p53' ] %}
                             
-                            {% set excretion_names = ['Clearance (Hepatocyte)', 'Clearance (Microsome)', 'Half_Life'] %}
-
-                            {% set excretion_urls = [
-                                'https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca',
-                                'https://tdcommons.ai/single_pred_tasks/adme/#half-life-obach-et-al'
-                                ] %}
-
-                            {% set excretion_multitask_values = [
-                                0.3022337749, 
-                                0.3003254935, 
-                                -1.551572848 
-                                ] %}
-
-                            {% set excretion_size = [
-                                1020,
-                                1102,
-                                665
-                                ] %}
-
-                            {% set toxicity_list = ['ClinTox', 'AMES', 'Carcinogens_Lagunin', 'DILI', 'hERG_Karim', 'LD50_Zhu', 'Skin Reaction'] %}
-
-                            {% set toxicity_names = ['ClinTox', 'Ames Mutagenicity', 'Carcinogens', 'Drug Induced Liver Injury', 'hERG Karim', 'Acute Toxicity LD50', 'Skin Reaction'] %}
-
-                            {% set toxicity_urls = [
-                                'https://tdcommons.ai/single_pred_tasks/tox/#clintox',
-                                'https://tdcommons.ai/single_pred_tasks/tox/#ames-mutagenicity',
-                                'https://tdcommons.ai/single_pred_tasks/tox/#carcinogens',
-                                'https://tdcommons.ai/single_pred_tasks/tox/#dili-drug-induced-liver-injury',
-                                'https://tdcommons.ai/single_pred_tasks/tox/#herg-karim-et-al',
-                                'https://tdcommons.ai/single_pred_tasks/tox/#acute-toxicity-ld50',
-                                'https://tdcommons.ai/single_pred_tasks/tox/#skin-reaction'
-                                ] %}
-
-                            {% set toxicity_multitask_values = [
-                                0.4253902419, 
-                                0.9122659883,
-                                0.7284862154,
-                                0.8583792768, 
-                                0.9259686215, 
-                                0.6125000012, 
-                                0.8673169073 
-                                ] %}
-
-                            {% set toxicity_size = [
-                                1459,
-                                7255,
-                                278,
-                                475,
-                                648,
-                                7342,
-                                404
-                                ] %}
                             
                             {% set counter = namespace(value=0) %}
 
-                            {% set ranges = ['N/A', 'N/A', 'Optimal: >-5.15', 'Optimal: 1-3', 'Optimal: >=80%', 'Optimal: Soluble -20, slightly soluble -4-2, insoluble <-4', 'Optimal: 0.04~20', 'Optimal: <= 30%', 'Optimal: <= 90%', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'Optimal: <=30%', 'N/A', 'Optimal: <= 30%', 'Optimal: <= 30%', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A'] %}
+                            {% set ranges = ['N/A', 'N/A', 'Optimal: >-5.15', 'Optimal: 1-3', 'Optimal: >=80%', 'Optimal: Soluble -20, slightly soluble -4-2, insoluble <-4', 'Optimal: 0.04~20', 'Optimal: <= 30%', 'Optimal: <= 90%', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'Optimal: <=30%', 'N/A', 'Optimal: <= 30%', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A',
+                            'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A'] %}
                             
                             <div style="display: flex; flex-wrap: wrap;">
                                 
@@ -589,7 +473,11 @@
                                 </div> -->
 
                                 <div style="flex: 1; width: 100%;">
-                                    <h3 id="table_header">Absorption</h3>
+                                    <div style="display: flex;">
+                                        <h3 id="table_header">Absorption</h3>
+                                        <img src="../static/images/absorption.jpeg" alt="absorption" style="width:50px; height:50px; margin-left: 225px;"/>
+                                    </div>
+                                    
                                     <table style="width: 90%; margin: 10px;">
                                         <thead>
                                             <tr>
@@ -606,15 +494,16 @@
 
                                                     <tr>
                                                         <td><strong>
-                                                            <a href={{ adsorption_urls[adsorption_list.index(task_names[j])] }} class="data_link">
-                                                                {{ adsorption_names[adsorption_list.index(task_names[j])] }}
+                                                            <a href={{ ads_url_list[adsorption_list.index(task_names[j])] }} class="data_link">
+                                                                {{ ads_name_list[adsorption_list.index(task_names[j])] }}
                                                             </a>
                                                             <span 
                                                                 class="glyphicon glyphicon-question-sign" 
                                                                 style="font-size:15px" data-toggle="tooltip" 
                                                                 data-placement="right" 
-                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(adsorption_multitask_values[adsorption_list.index(task_names[j])]) }}          
-                                                                Dataset Size: {{ '%0.4g'|format(adsorption_size[adsorption_list.index(task_names[j])]) }}">
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(ads_multi_list[adsorption_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(ads_size_list[adsorption_list.index(task_names[j])]) }}
+                                                                TDC Leaderboard Rank: {{ '%0.4g'|format(ads_rank_list[adsorption_list.index(task_names[j])]) }}">
                                                             </span>    
                                                         </strong></td>                                                        
                                                         {% if task_names[j] == 'Lipophilicity_AstraZeneca' %}
@@ -630,7 +519,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -651,7 +540,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -674,7 +563,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -695,7 +584,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -718,7 +607,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -739,7 +628,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -762,7 +651,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -782,7 +671,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -802,7 +691,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -823,7 +712,7 @@
                                                                         title="{{ ranges[counter.value] }}">
                                                                     </span>
                                                                 {% endif %}
-                                                                {% if adsorption_multitask_values[adsorption_list.index(task_names[j])] < 0.6 %}
+                                                                {% if ads_multi_list[adsorption_list.index(task_names[j])] < 0.6 %}
                                                                     <span 
                                                                         class="glyphicon glyphicon-warning-sign" 
                                                                         style="font-size:15px" data-toggle="tooltip" 
@@ -850,7 +739,10 @@
                                 </div>
                                 
                                 <div style="flex: 1; width: 100%;">
-                                    <h3 id="table_header">Distribution</h3>
+                                    <div style="display: flex;">
+                                        <h3 id="table_header">Distribution</h3>
+                                        <img src="../static/images/distribution.jpeg" alt="Distribution" style="width:50px; height:50px; margin-left: 225px;"/>
+                                    </div>
                                     <table style="width: 90%; margin: 10px;">
                                         <thead>
                                             <tr>
@@ -869,15 +761,16 @@
                                                     <tr>
                                                         
                                                         <td><strong>
-                                                            <a href={{ distribution_urls[distribution_list.index(task_names[j])] }} class="data_link">
-                                                                {{ distribution_names[distribution_list.index(task_names[j])] }}
+                                                            <a href={{ dist_url_list[distribution_list.index(task_names[j])] }} class="data_link">
+                                                                {{ dist_name_list[distribution_list.index(task_names[j])] }}
                                                             </a>
                                                             <span 
                                                                 class="glyphicon glyphicon-question-sign" 
                                                                 style="font-size:15px" data-toggle="tooltip" 
                                                                 data-placement="right" 
-                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(distribution_multitask_values[distribution_list.index(task_names[j])]) }}          
-                                                                Dataset Size: {{ '%0.4g'|format(distribution_size[distribution_list.index(task_names[j])]) }}">
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(dist_multi_list[distribution_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(dist_size_list[distribution_list.index(task_names[j])]) }}
+                                                                TDC Leaderboard Rank: {{ '%0.4g'|format(dist_rank_list[distribution_list.index(task_names[j])]) }}"">
                                                             </span>     
                                                         </strong></td>
                                                         
@@ -894,7 +787,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -915,7 +808,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -938,7 +831,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -959,7 +852,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -982,7 +875,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -1003,7 +896,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -1024,7 +917,7 @@
                                                                         title="{{ ranges[counter.value] }}">
                                                                     </span>
                                                                 {% endif %}
-                                                                {% if distribution_multitask_values[distribution_list.index(task_names[j])] < 0.6 %}
+                                                                {% if dist_multi_list[distribution_list.index(task_names[j])] < 0.6 %}
                                                                     <span 
                                                                         class="glyphicon glyphicon-warning-sign" 
                                                                         style="font-size:15px" data-toggle="tooltip" 
@@ -1053,7 +946,10 @@
                                 </div>
 
                                 <div style="flex: 1; width: 100%;">
-                                    <h3 id="table_header">Metabolism</h3>
+                                    <div style="display: flex;">
+                                        <h3 id="table_header">Metabolism</h3>
+                                        <img src="../static/images/metabolism.jpeg" alt="Metabolism" style="width:50px; height:50px; margin-left: 225px;"/>
+                                    </div>
                                     <table style="width: 90%; margin: 10px;">
                                         <thead>
                                             <tr>
@@ -1069,16 +965,17 @@
                                                 {% if task_names[j] in metabolism_list %}
                                                     <tr>
                                                         <td><strong>
-                                                            <a href={{ metabolism_urls[metabolism_list.index(task_names[j])] }} class="data_link">
-                                                                {{ metabolism_names[metabolism_list.index(task_names[j])] }}
+                                                            <a href={{ meta_url_list[metabolism_list.index(task_names[j])] }} class="data_link">
+                                                                {{ meta_name_list[metabolism_list.index(task_names[j])] }}
                                                             </a>
                                                             
                                                             <span 
                                                                 class="glyphicon glyphicon-question-sign" 
                                                                 style="font-size:15px" data-toggle="tooltip" 
                                                                 data-placement="right" 
-                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(metabolism_multitask_values[metabolism_list.index(task_names[j])]) }}          
-                                                                Dataset Size: {{ '%0.4g'|format(metabolism_size[metabolism_list.index(task_names[j])]) }}">
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(meta_multi_list[metabolism_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(meta_size_list[metabolism_list.index(task_names[j])]) }}
+                                                                TDC Leaderboard Rank: {{ '%0.4g'|format(meta_rank_list[metabolism_list.index(task_names[j])]) }}"">
                                                             </span>    
                                                         </strong></td>                                                        
                                                         <td>
@@ -1091,7 +988,7 @@
                                                                     title="{{ ranges[counter.value] }}">
                                                                 </span>
                                                             {% endif %}
-                                                            {% if metabolism_multitask_values[metabolism_list.index(task_names[j])] < 0.6 %}
+                                                            {% if meta_multi_list[metabolism_list.index(task_names[j])] < 0.6 %}
                                                                 <span 
                                                                     class="glyphicon glyphicon-warning-sign" 
                                                                     style="font-size:15px" data-toggle="tooltip" 
@@ -1118,7 +1015,11 @@
                                 
 
                                 <div style="flex: 1; width: 100%;">
-                                    <h3 id="table_header">Excretion</h3>
+                                    <div style="display: flex;">
+                                        <h3 id="table_header">Excretion</h3>
+                                        <img src="../static/images/excretion.jpeg" alt="Excretion" style="width:50px; height:50px; margin-left: 250px;"/>
+                                    </div>
+                                    
                                     <table style="width: 90%; margin: 10px;">
                                         <thead>
                                             <tr>
@@ -1134,16 +1035,17 @@
                                                 {% if task_names[j] in excretion_list %}
                                                     <tr>
                                                         <td><strong>
-                                                            <a href={{ excretion_urls[excretion_list.index(task_names[j])] }} class="data_link">
-                                                                {{ excretion_names[excretion_list.index(task_names[j])] }}
+                                                            <a href={{ excr_url_list[excretion_list.index(task_names[j])] }} class="data_link">
+                                                                {{ excr_name_list[excretion_list.index(task_names[j])] }}
                                                             </a>
                                                            
                                                             <span 
                                                                 class="glyphicon glyphicon-question-sign" 
                                                                 style="font-size:15px" data-toggle="tooltip" 
                                                                 data-placement="right" 
-                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(excretion_multitask_values[excretion_list.index(task_names[j])]) }}          
-                                                                Dataset Size: {{ '%0.4g'|format(excretion_size[excretion_list.index(task_names[j])]) }}">
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(excr_multi_list[excretion_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(excr_size_list[excretion_list.index(task_names[j])]) }}
+                                                                TDC Leaderboard Rank: {{ '%0.4g'|format(excr_rank_list[excretion_list.index(task_names[j])]) }}"">
                                                             </span>        
                                                         </strong></td>                                                        
                                                         <td>
@@ -1156,7 +1058,7 @@
                                                                     title="{{ ranges[counter.value] }}">
                                                                 </span>
                                                             {% endif %}
-                                                            {% if excretion_multitask_values[excretion_list.index(task_names[j])] < 0.6 %}
+                                                            {% if excr_multi_list[excretion_list.index(task_names[j])] < 0.6 %}
                                                                 <span 
                                                                     class="glyphicon glyphicon-warning-sign" 
                                                                     style="font-size:15px" data-toggle="tooltip" 
@@ -1181,7 +1083,10 @@
                                 </div>
 
                                 <div style="flex: 1; width: 100%;">
-                                    <h3 id="table_header">Toxicity</h3>
+                                    <div style="display: flex;">
+                                        <h3 id="table_header">Toxicity</h3>
+                                        <img src="../static/images/toxicity.jpeg" alt="Toxicity" style="width:50px; height:50px; margin-left: 685px;"/>
+                                    </div>
                                     <table style="width: 90%; margin: 10px;">
                                         <thead>
                                             <tr>
@@ -1197,15 +1102,16 @@
                                                 {% if task_names[j] in toxicity_list %}
                                                     <tr>
                                                         <td><strong>
-                                                            <a href={{ toxicity_urls[toxicity_list.index(task_names[j])] }} class="data_link">
-                                                                {{ toxicity_names[toxicity_list.index(task_names[j])] }}
+                                                            <a href={{ tox_url_list[toxicity_list.index(task_names[j])] }} class="data_link">
+                                                                {{ tox_name_list[toxicity_list.index(task_names[j])] }}
                                                             </a>
                                                             <span 
                                                                 class="glyphicon glyphicon-question-sign" 
                                                                 style="font-size:15px" data-toggle="tooltip" 
                                                                 data-placement="right" 
-                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(toxicity_multitask_values[toxicity_list.index(task_names[j])]) }}          
-                                                                Dataset Size: {{ '%0.4g'|format(toxicity_size[toxicity_list.index(task_names[j])]) }}">
+                                                                title="Dataset R^2 mean: {{ '%0.4g'|format(tox_multi_list[toxicity_list.index(task_names[j])]) }}          
+                                                                Dataset Size: {{ '%0.4g'|format(tox_size_list[toxicity_list.index(task_names[j])]) }}
+                                                                TDC Leaderboard Rank: {{ '%0.4g'|format(tox_rank_list[toxicity_list.index(task_names[j])]) }}"">
                                                             </span>    
                                                         </strong></td>
                                                         {% if task_names[j] == 'Carcinogens_Lagunin' %}
@@ -1221,7 +1127,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if tox_multi_list[toxicity_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -1242,7 +1148,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if tox_multi_list[toxicity_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -1265,7 +1171,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if tox_multi_list[toxicity_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -1286,7 +1192,7 @@
                                                                             title="{{ ranges[counter.value] }}">
                                                                         </span>
                                                                     {% endif %}
-                                                                    {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                    {% if tox_multi_list[toxicity_list.index(task_names[j])] < 0.6 %}
                                                                         <span 
                                                                             class="glyphicon glyphicon-warning-sign" 
                                                                             style="font-size:15px" data-toggle="tooltip" 
@@ -1308,7 +1214,7 @@
                                                                         title="{{ ranges[counter.value] }}">
                                                                     </span>
                                                                 {% endif %}
-                                                                {% if toxicity_multitask_values[toxicity_list.index(task_names[j])] < 0.6 %}
+                                                                {% if tox_multi_list[toxicity_list.index(task_names[j])] < 0.6 %}
                                                                     <span 
                                                                         class="glyphicon glyphicon-warning-sign" 
                                                                         style="font-size:15px" data-toggle="tooltip" 
@@ -1338,6 +1244,7 @@
                                 </div>
 
                             </div>
+                            
 
                         </div>
                         <br>
