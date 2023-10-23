@@ -24,7 +24,7 @@
     <style>
         /* Add custom styles for the header */
         .navbar.navbar-inverse {
-            background-color: #12272b;
+            background-color: #e5f6fc;
             border-color: #12272b;
         }
         .navbar.navbar-inverse .navbar-nav > li > a {
@@ -40,7 +40,7 @@
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
         <div class="navbar-header">
-            <a href="https://greenstonebio.com"><img src="https://greenstonebio.com/wp-content/uploads/2022/03/logo.svg" alt="GreenStone Logo" /></a>
+            <a href="https://greenstonebio.com"><img src="../static/images/ADMET.jpeg" alt="ADMET AI Logo" style="width:70px;height:70px;"/></a>
             <!-- <a class="navbar-brand" href="{{ url_for('home') }}">Chemprop</a> -->
         </div>
         <ul class="nav navbar-nav">
@@ -50,7 +50,7 @@
             <li><a href="{{ url_for('train') }}">Train</a></li>
             {% endif %}
             #}
-            <li><a href="{{ url_for('predict') }}" style="color: white;">Predict</a></li>
+            <li><h3>ADMET AI</h3></li>
             {#
             {% if not config['DEMO'] %}
             <li><a href="{{ url_for('data') }}">Data</a></li>
@@ -86,7 +86,7 @@
 
 <nav class="navbar navbar-inverse navbar-fixed-bottom">
     <div class="container-fluid">
-        <p class="navbar-text pull-left">Chemprop v0.1 © 2020</p>
+        <p class="navbar-text pull-left">ADMET-AI is a collabaration between Greenstone Biosciences and Stanford University</p>
 
         {# <a href="https://github.com/chemprop/chemprop" class="navbar-btn btn-info btn pull-right">Source code</a> #}
     </div>
