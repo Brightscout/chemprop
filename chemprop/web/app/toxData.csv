@@ -1,0 +1,20 @@
+﻿id,name,multitask,size,url,rank
+ClinTox,ClinTox,0.425390242,1459,https://tdcommons.ai/single_pred_tasks/tox/#clintox,0
+AMES,Ames Mutagenicity,0.912265988,7255,https://tdcommons.ai/single_pred_tasks/tox/#ames-mutagenicity,2
+Carcinogens_Lagunin,Carcinogens,0.728486215,278,https://tdcommons.ai/single_pred_tasks/tox/#carcinogens,0
+DILI,Drug Induced Liver Injury,0.858379277,475,https://tdcommons.ai/single_pred_tasks/tox/#dili-drug-induced-liver-injury,5
+hERG,hERG,0.925968622,648,https://tdcommons.ai/single_pred_tasks/tox/#herg-karim-et-al,4
+LD50_Zhu,Acute Toxicity LD50,0.612500001,7342,https://tdcommons.ai/single_pred_tasks/tox/#acute-toxicity-ld50,5
+Skin_Reaction,Skin Reaction,0.867316907,404,https://tdcommons.ai/single_pred_tasks/tox/#skin-reaction,0
+NR-AR-LBD,NR-AR-LBD,0.821381643,7265,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+NR-AR,NR-AR,0.899019067,6758,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+NR-AhR,NR-AhR,0.887560753,6549,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+NR-Aromatase,NR-Aromatase,0.874020253,5821,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+NR-ER-LBD,NR-ER-LBD,0.715059484,6193,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+NR-ER,NR-ER,0.814587495,6955,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+NR-PPAR-gamma,NR-PPAR-gamma,0.884272416,6450,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+SR-ARE,SR-ARE,0.837783074,5832,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+SR-ATAD5,SR-ATAD5,0.879084144,7072,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+SR-HSE,SR-HSE,0.852138257,6467,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+SR_MMP,SR_MMP,0.925379251,5810,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0
+SR-p53,SR-p53,0.878568992,6774,https://tdcommons.ai/single_pred_tasks/tox/#tox21,0

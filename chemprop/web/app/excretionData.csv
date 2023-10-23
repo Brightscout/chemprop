@@ -1,0 +1,4 @@
+﻿id,name,multitask,size,url,rank
+Clearance_Hepatocyte_AZ,Clearance (Hepatocyte),0.302233775,1020,https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca,4
+Clearance_Microsome_AZ,Clearance (Microsome),0.300325494,1102,https://tdcommons.ai/single_pred_tasks/adme/#clearance-astrazeneca,2
+Half_Life_Obach,Half_Life,-1.551572848,665,https://tdcommons.ai/single_pred_tasks/adme/#half-life-obach-et-al,7

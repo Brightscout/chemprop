@@ -1,0 +1,9 @@
+﻿id,name,multitask,size,url,rank
+Bioavailability_Ma,Bioavailability,0.898285256,640,https://tdcommons.ai/single_pred_tasks/adme/#bioavailability-ma-et-al,5
+Caco2_Wang,Cell Effective Permeability,0.744364201,906,https://tdcommons.ai/single_pred_tasks/adme/#caco-2-cell-effective-permeability-wang-et-al,5
+HIA_Hou,Human Intestinal Adsorption,0.996606708,578,https://tdcommons.ai/single_pred_tasks/adme/#hia-human-intestinal-absorption-hou-et-al,2
+HydrationFreeEnergy_FreeSolv,Hydration Free Energy,0.919245,642,https://tdcommons.ai/single_pred_tasks/adme/#hydration-free-energy-freesolv,0
+Lipophilicity_AstraZeneca,Lipophilicity,0.746047462,4200,https://tdcommons.ai/single_pred_tasks/adme/#lipophilicity-astrazeneca,1
+PAMPA_NCATS,PAMPA Permeability,0.94826615,2034,https://tdcommons.ai/single_pred_tasks/adme/#pampa-permeability-ncats,0
+Pgp_Broccatelli,P-glycoprotein Inhibition,0.959242927,1212,https://tdcommons.ai/single_pred_tasks/adme/#pgp-p-glycoprotein-inhibition-broccatelli-et-al,10
+Solubility_AqSolDB,Solubility,0.814276627,9982,https://tdcommons.ai/single_pred_tasks/adme/#solubility-aqsoldb,1

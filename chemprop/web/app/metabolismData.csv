@@ -1,0 +1,9 @@
+﻿id,name,multitask,size,url,rank
+CYP1A2_Veith,CYP1A2 Inhibition,0.934630479,12579,https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-1a2-inhibition-veith-et-al,0
+CYP2C9_Substrate_CarbonMangels,CYP2C9 Substrate,0.3002083,666,https://tdcommons.ai/single_pred_tasks/adme/#cyp2c9-substrate-carbon-mangels-et-al,4
+CYP2C9_Veith,CYP2C9 Inhibition,0.809011378,12092,https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c9-inhibition-veith-et-al,4
+CYP2C19_Veith,CYP2C19 Inhibition,0.882382711,12665,https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2c19-inhibition-veith-et-al,0
+CYP2D6_Substrate_CarbonMangels,CYP2D6 Substrate,0.573863564,664,https://tdcommons.ai/single_pred_tasks/adme/#cyp2d6-substrate-carbon-mangels-et-al,3
+CYP2D6_Veith,CYP2D6 Inhibition,0.734222423,13130,https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-2d6-inhibition-veith-et-al,3
+CYP3A4_Substrate_CarbonMangels,CYP3A4 Substrate,0.701417532,667,https://tdcommons.ai/single_pred_tasks/adme/#cyp3a4-substrate-carbon-mangels-et-al,7
+CYP3A4_Veith,CYP3A4 Inhibition,0.881595257,12328,https://tdcommons.ai/single_pred_tasks/adme/#cyp-p450-3a4-inhibition-veith-et-al,3

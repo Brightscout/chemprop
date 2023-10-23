@@ -1,0 +1,4 @@
+﻿id,name,multitask,size,url,rank
+BBB_Martins,Blood Brain Barrier,0.978083609,1975,https://tdcommons.ai/single_pred_tasks/adme/#bbb-blood-brain-barrier-martins-et-al,11
+PPBR_AZ,Plasma Protein Binding Rate,0.462089051,1614,https://tdcommons.ai/single_pred_tasks/adme/#ppbr-plasma-protein-binding-rate-astrazeneca,3
+VDss_Lombardo,Volume of Distribution at steady state,-0.610145027,1111,https://tdcommons.ai/single_pred_tasks/adme/#vdss-volumn-of-distribution-at-steady-state-lombardo-et-al,10
