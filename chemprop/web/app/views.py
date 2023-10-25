@@ -31,6 +31,7 @@ from chemprop.web.app.models import (
     compute_drugbank_percentile,
     get_drugbank_dataframe,
     get_drugbank_unique_atc_codes,
+    get_drugbank_tasks,
     get_models_dict
 )
 
@@ -54,6 +55,9 @@ from chemprop.utils import create_logger, load_args
 TRAINING = 0
 PROGRESS = mp.Value('d', 0.0)
 PREDS_DF = pd.DataFrame()
+ATC_CODE = 'all'
+DRUGBANK_X_TASK = 'HIA_Hou'
+DRUGBANK_Y_TASK = 'ClinTox'
 
 
 def check_not_demo(func: Callable) -> Callable:
@@ -345,6 +349,7 @@ def render_predict(**kwargs):
                            checkpoint_upload_errors=checkpoint_upload_errors,
                            users=db.get_all_users(),
                            drugbank_atc_codes=['all'] + get_drugbank_unique_atc_codes(),
+                           drugbank_tasks=get_drugbank_tasks(),
                            **kwargs)
 
 
@@ -498,13 +503,24 @@ def create_drugbank_reference_plot(
 
 @app.route('/drugbank_plot', methods=['GET'])
 def drugbank_plot():
+    global ATC_CODE, DRUGBANK_X_TASK, DRUGBANK_Y_TASK
+
     # Get requested ATC code
-    atc_code = request.args.get('atc_code', default='all', type=str)
+    ATC_CODE = request.args.get('atc_code', default=ATC_CODE, type=str)
+
+    # Get requested X and Y axes
+    DRUGBANK_X_TASK = request.args.get('x_task', default=DRUGBANK_X_TASK, type=str)
+    DRUGBANK_Y_TASK = request.args.get('y_task', default=DRUGBANK_Y_TASK, type=str)
 
     # Create DrugBank reference plot with ATC code
-    drugbank_plot = create_drugbank_reference_plot(preds_df=PREDS_DF, atc_code=atc_code)
+    drugbank_plot_svg = create_drugbank_reference_plot(
+        preds_df=PREDS_DF,
+        x_task=DRUGBANK_X_TASK,
+        y_task=DRUGBANK_Y_TASK,
+        atc_code=ATC_CODE
+    )
 
-    return jsonify({"svg": drugbank_plot})
+    return jsonify({"svg": drugbank_plot_svg})
 
 
 @app.route('/predict', methods=['GET', 'POST'])
@@ -578,7 +594,12 @@ def predict():
     preds = [pred if pred is not None else [invalid_smiles_warning] * num_tasks for pred in preds]
 
     # Create DrugBank reference plot
-    drugbank_plot = create_drugbank_reference_plot(preds_df=PREDS_DF)
+    drugbank_plot_svg = create_drugbank_reference_plot(
+        preds_df=PREDS_DF,
+        x_task=DRUGBANK_X_TASK,
+        y_task=DRUGBANK_Y_TASK,
+        atc_code=ATC_CODE
+    )
 
     cat_file = 'chemprop/web/app/categoryData.csv'
     cat_df = pd.read_csv(cat_file)
@@ -608,7 +629,7 @@ def predict():
                           tox = tox_df,
                           preds=preds,
                           drugbank_percentiles=drugbank_percentiles,
-                          drugbank_plot=drugbank_plot,
+                          drugbank_plot=drugbank_plot_svg,
                           warnings=["List contains invalid SMILES strings"] if None in preds else None,
                           errors=["No SMILES strings given"] if len(preds) == 0 else None)
 

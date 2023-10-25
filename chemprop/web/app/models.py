@@ -36,7 +36,7 @@ def load_drugbank_reference() -> None:
         for atc_code, indices in atc_code_to_drugbank_indices.items()
     }
 
-# Create a decorator to load the DrugBank reference DataFrame if it is not already loaded
+
 def preload_drugbank(func: callable) -> callable:
     """Decorator to load the DrugBank reference DataFrame if it is not already loaded."""
 
@@ -71,6 +71,7 @@ def get_drugbank_dataframe(atc_code: str = 'all') -> pd.DataFrame:
     return DRUGBANK_DF.loc[ATC_CODE_TO_DRUGBANK_INDICES[atc_code]]
 
 
+# TODO: consider caching these values
 @preload_drugbank
 def get_drugbank_unique_atc_codes() -> list[str]:
     """Get the unique ATC codes in the DrugBank reference set."""
@@ -80,6 +81,15 @@ def get_drugbank_unique_atc_codes() -> list[str]:
         for atc_codes in DRUGBANK_DF[atc_column].dropna().str.split(";")
         for atc_code in atc_codes
     })
+
+
+# TODO: consider caching these values
+@preload_drugbank
+def get_drugbank_tasks() -> list[str]:
+    """Get the tasks (properties) predicted by the DrugBank reference set."""
+    non_task_columns = ['name', 'smiles'] + [column for column in DRUGBANK_DF.columns if column.startswith("atc_")]
+    task_columns = set(DRUGBANK_DF.columns) - set(non_task_columns)
+    return sorted(task_columns)
 
 
 def load_models() -> None:

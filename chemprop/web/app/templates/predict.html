@@ -230,13 +230,6 @@
             <button type="submit" class="btn btn-primary btn-md">Predict</button>
         </form>
 
-        <br>
-
-        
-        
-
-
-        
         <div class="dropdown">
             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 Select ATC Code
@@ -245,7 +238,7 @@
                 <input class="form-control" id="atc-selection" type="text" placeholder="Search..">
                 <li>
                     {% for atc_code in drugbank_atc_codes %}
-                        <a class="dropdown-item" href="#">{{ atc_code }}</a>
+                        <a class="dropdown-item atc-item" href="#">{{ atc_code }}</a>
                     {% endfor %}
                 </li>
             </div>
@@ -254,7 +247,7 @@
         $(document).ready(function(){
             $("#atc-selection").on("keyup", function() {
                 var value = $(this).val().toLowerCase();
-                $(".dropdown-menu li a").filter(function() {
+                $(".atc-item").filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
             });
@@ -275,9 +268,65 @@
                 });
             }
 
-            $('.dropdown-menu li a').click(function() {
-                var selectedValue = $(this).text();
-                clickATC(selectedValue);
+            $('.atc-item').click(function() {
+                var atc_code = $(this).text();
+                clickATC(atc_code);
+            });
+        });
+        </script>
+
+        {% for axis in ["x", "y"] %}
+            <div class="dropdown">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                    Select DrugBank {{ axis }}-axis property
+                </button>
+                <div class="dropdown-menu">
+                    <input class="form-control" id="drugbank-{{ axis }}-axis-selection" type="text" placeholder="Search..">
+                    <li>
+                        {% for task in drugbank_tasks %}
+                            <a class="dropdown-item drugbank-{{ axis }}-axis-item" href="#">{{ task }}</a>
+                        {% endfor %}
+                    </li>
+                </div>
+            </div>
+        {% endfor %}
+
+        <script>
+        $(document).ready(function(){
+            function clickDrugBank(task, axis) {
+                console.log(task);
+                console.log(axis);
+                $.ajax({
+                    url: `/drugbank_plot?${axis}_task=` + task,
+                    type: "GET",
+                    dataType: "json",
+                    success: function(response) {
+                        if (response.svg) {
+                            document.getElementById("drugbank-plot").innerHTML = response.svg;
+                        }
+                    },
+                    error: function(error) {
+                        console.error("Failed to fetch DrugBank SVG:", error);
+                    }
+                });
+            }
+
+            let axes = ["x", "y"];
+            axes.forEach(function(axis) {
+                console.log(axis);
+                $(`#drugbank-${axis}-axis-selection`).on("keyup", function() {
+                    console.log("keyup");
+                    var value = $(this).val().toLowerCase();
+                    $(`.drugbank-${axis}-axis-item`).filter(function() {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                    });
+                });
+
+                $(`.drugbank-${axis}-axis-item`).click(function() {
+                    console.log("click");
+                    var task = $(this).text();
+                    clickDrugBank(task, axis);
+                });
             });
         });
         </script>
