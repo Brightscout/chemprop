@@ -446,7 +446,7 @@
                     <li class="index" data-index="{{ '%0.4f'|format(preds[smiles_index][0]) }}">
                         <div>
                             <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}" style="display: flex; align-items: center;">
-                                <strong style="font-size: x-large; text-wrap: balance;">Molecule {{ smiles_index + 1 }}: {{ smiles[smiles_index] }}  </strong>
+                                <strong style="font-size: x-large; text-wrap: wrap;">Molecule {{ smiles_index + 1 }}: {{ smiles[smiles_index] }}  </strong>
                                 <div id="molecule-image{{ smiles_index }}" class="mol-image" style="margin-left: auto"></div>
                             </button>
                         </div>
@@ -546,7 +546,7 @@
                                             <tr>
                                                 <th>Model</th>
                                                 <th>Prediction</th>
-                                                <th>DrugBank Percentile</th>
+                                                <th>DrugBank Percentile{{ " (ATC filter)" if session.get("atc_code", "all") != "all" else "" }}</th>
                                                 <th>Unit</th>
                                                
                                             </tr>

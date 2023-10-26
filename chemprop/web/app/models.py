@@ -50,22 +50,28 @@ def preload_drugbank(func: callable) -> callable:
 
 
 @preload_drugbank
-def compute_drugbank_percentile(task_name: str, predictions: np.ndarray) -> np.ndarray:
-    """Computes the percentile of the prediction compared to the DrugBank approved molecules.
+def compute_drugbank_percentile(task_name: str, predictions: np.ndarray, atc_code: str | None = None) -> np.ndarray:
+    """Computes the percentile of the predictions compared to the DrugBank approved molecules.
 
     :param task_name: The name of the task (property) that is predicted.
     :param predictions: A 1D numpy array of predictions.
+    :param atc_code: The ATC code to filter by. If None or 'all', returns the entire DrugBank.
+    :return: A 1D numpy array of percentiles of the predictions compared to the DrugBank approved molecules.
     """
-    return percentileofscore(DRUGBANK_DF[task_name], predictions)
+    # Get DrugBank reference, optionally filtered ATC code
+    drugbank = get_drugbank_dataframe(atc_code=atc_code)
+
+    return percentileofscore(drugbank[task_name], predictions)
 
 
 @preload_drugbank
-def get_drugbank_dataframe(atc_code: str = 'all') -> pd.DataFrame:
+def get_drugbank_dataframe(atc_code: str | None = None) -> pd.DataFrame:
     """Get the DrugBank reference DataFrame, optionally filtered by ATC code.
 
-    :param atc_code: The ATC code to filter by. If 'all', returns the entire DrugBank.
+    :param atc_code: The ATC code to filter by. If None or 'all', returns the entire DrugBank.
+    :return: A DataFrame containing the DrugBank reference set, optionally filtered by ATC code.
     """
-    if atc_code == 'all':
+    if atc_code is None or atc_code == 'all':
         return DRUGBANK_DF
 
     return DRUGBANK_DF.loc[ATC_CODE_TO_DRUGBANK_INDICES[atc_code]]

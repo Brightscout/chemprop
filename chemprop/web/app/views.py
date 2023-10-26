@@ -622,7 +622,7 @@ def predict():
     # Compute DrugBank percentiles
     preds_numpy = np.array(preds).transpose()  # (num_tasks, num_molecules)
     drugbank_percentiles = np.stack([
-        compute_drugbank_percentile(task_name=task_name, predictions=task_preds)
+        compute_drugbank_percentile(task_name=task_name, predictions=task_preds, atc_code=session.get("atc_code"))
         for task_name, task_preds in zip(task_names, preds_numpy)
     ]).transpose()  # (num_molecules, num_tasks)
 
