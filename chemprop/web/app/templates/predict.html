@@ -158,7 +158,10 @@
                 <input type="radio" name="inputType" value="file" autocomplete="off"> Upload File
                 </label>
                 <label id="drawButton" class="btn btn-primary">
-                <input type="radio" name="inputType" value="file" autocomplete="off"> Draw Molecule
+                <input type="radio" name="inputType" value="button" autocomplete="off"> Draw Molecule
+                </label>
+                <label id="exampleButton" class="btn btn-primary">
+                <input type="radio" name="inputType" value="button" autocomplete="off"> Example
                 </label>
             </div>
 
@@ -214,6 +217,16 @@
                             $("#fileSmilesInput").prop('required', false);
                             $("#drawInputForm").show();
                             $("#drawSmilesInput").prop('required', true);
+                        });
+                        $("#exampleButton").click(function() {
+                            $("#textInputForm").show();
+                            $("#textSmilesInput").prop('required', true);
+                            $("#textSmilesInput").val("O(c1ccc(cc1)CCOC)CC(O)CNC(C)C");
+                            $("#fileInputForm").hide();
+                            $("#fileSmilesInput").prop('required', false);
+                            $("#drawInputForm").hide();
+                            $("#drawSmilesInput").prop('required', false);
+                            $("#drawSmilesInput").val('');
                         });
                     });
 
