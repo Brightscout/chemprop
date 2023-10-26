@@ -167,7 +167,7 @@
             <!--SMILES input-->
             <div id="textInputForm">
                 <h5>SMILES (one per line)</h5>
-                <textarea id="textSmilesInput" name="textSmiles" cols="100" rows="10" placeholder="SMILES" required></textarea>
+                <textarea id="textSmilesInput" name="textSmiles" cols="100" rows="10" placeholder="SMILES" style="width: 100%" required></textarea>
             </div>
             <div id="fileInputForm" style="display:none">
                 <h5>File containing SMILES (one per line)</h5>
@@ -238,115 +238,121 @@
             <button type="submit" class="btn btn-primary btn-md">Predict</button>
         </form>
 
-        <div class="dropdown">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                Select ATC Code
-            </button>
-            <div class="dropdown-menu">
-                <input class="form-control" id="atc-selection" type="text" placeholder="Search..">
-                <li>
-                    {% for atc_code in drugbank_atc_codes %}
-                        <a class="dropdown-item atc-item" href="#">{{ atc_code }}</a>
-                    {% endfor %}
-                </li>
-            </div>
-        </div>
-        <script>
-        $(document).ready(function(){
-            $("#atc-selection").on("keyup", function() {
-                var value = $(this).val().toLowerCase();
-                $(".atc-item").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
-            });
-
-            function clickATC(atc_code) {
-                $.ajax({
-                    url: "/drugbank_plot?atc_code=" + atc_code,
-                    type: "GET",
-                    dataType: "json",
-                    success: function(response) {
-                        if (response.svg) {
-                            document.getElementById("drugbank-plot").innerHTML = response.svg;
-                        }
-                    },
-                    error: function(error) {
-                        console.error("Failed to fetch DrugBank SVG:", error);
-                    }
-                });
-            }
-
-            $('.atc-item').click(function() {
-                var atc_code = $(this).text();
-                clickATC(atc_code);
-            });
-        });
-        </script>
-
-        {% for axis in ["x", "y"] %}
-            <div class="dropdown">
-                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                    Select DrugBank {{ axis }}-axis property
-                </button>
-                <div class="dropdown-menu">
-                    <input class="form-control" id="drugbank-{{ axis }}-axis-selection" type="text" placeholder="Search..">
-                    <li>
-                        {% for task in drugbank_tasks %}
-                            <a class="dropdown-item drugbank-{{ axis }}-axis-item" href="#">{{ task }}</a>
-                        {% endfor %}
-                    </li>
-                </div>
-            </div>
-        {% endfor %}
-
-        <script>
-        $(document).ready(function(){
-            function clickDrugBank(task, axis) {
-                console.log(task);
-                console.log(axis);
-                $.ajax({
-                    url: `/drugbank_plot?${axis}_task=` + task,
-                    type: "GET",
-                    dataType: "json",
-                    success: function(response) {
-                        if (response.svg) {
-                            document.getElementById("drugbank-plot").innerHTML = response.svg;
-                        }
-                    },
-                    error: function(error) {
-                        console.error("Failed to fetch DrugBank SVG:", error);
-                    }
-                });
-            }
-
-            let axes = ["x", "y"];
-            axes.forEach(function(axis) {
-                console.log(axis);
-                $(`#drugbank-${axis}-axis-selection`).on("keyup", function() {
-                    console.log("keyup");
-                    var value = $(this).val().toLowerCase();
-                    $(`.drugbank-${axis}-axis-item`).filter(function() {
-                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                    });
-                });
-
-                $(`.drugbank-${axis}-axis-item`).click(function() {
-                    console.log("click");
-                    var task = $(this).text();
-                    clickDrugBank(task, axis);
-                });
-            });
-        });
-        </script>
-
         <br>
         <br>
 
-        <div id="drugbank-plot" style="flex: 1; width: 100%;">
+        <div id="drugbank-plot" style="flex: 1; width: 100%; text-align: center;">
             {{ drugbank_plot|safe }}
         </div>
 
-        
+        {% if drugbank_plot %}
+            <br>
+
+            <div id="drugbank-plot-controls" style="text-align: center">
+                <div class="dropdown" style="display: inline">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                        Select ATC Code
+                    </button>
+                    <div class="dropdown-menu">
+                        <input class="form-control" id="atc-selection" type="text" placeholder="Search..">
+                        <li>
+                            {% for atc_code in drugbank_atc_codes %}
+                                <a class="dropdown-item atc-item" href="#">{{ atc_code }}</a>
+                            {% endfor %}
+                        </li>
+                    </div>
+                </div>
+                <script>
+                $(document).ready(function(){
+                    $("#atc-selection").on("keyup", function() {
+                        var value = $(this).val().toLowerCase();
+                        $(".atc-item").filter(function() {
+                            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                        });
+                    });
+
+                    function clickATC(atc_code) {
+                        $.ajax({
+                            url: "/drugbank_plot?atc_code=" + atc_code,
+                            type: "GET",
+                            dataType: "json",
+                            success: function(response) {
+                                if (response.svg) {
+                                    document.getElementById("drugbank-plot").innerHTML = response.svg;
+                                }
+                            },
+                            error: function(error) {
+                                console.error("Failed to fetch DrugBank SVG:", error);
+                            }
+                        });
+                    }
+
+                    $('.atc-item').click(function() {
+                        var atc_code = $(this).text();
+                        clickATC(atc_code);
+                    });
+                });
+                </script>
+
+                {% for axis in ["x", "y"] %}
+                    <div class="dropdown" style="display: inline">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                            Select DrugBank {{ axis }}-axis property
+                        </button>
+                        <div class="dropdown-menu">
+                            <input class="form-control" id="drugbank-{{ axis }}-axis-selection" type="text" placeholder="Search..">
+                            <li>
+                                {% for task in drugbank_tasks %}
+                                    <a class="dropdown-item drugbank-{{ axis }}-axis-item" href="#">{{ task }}</a>
+                                {% endfor %}
+                            </li>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <script>
+                $(document).ready(function(){
+                    function clickDrugBank(task, axis) {
+                        console.log(task);
+                        console.log(axis);
+                        $.ajax({
+                            url: `/drugbank_plot?${axis}_task=` + task,
+                            type: "GET",
+                            dataType: "json",
+                            success: function(response) {
+                                if (response.svg) {
+                                    document.getElementById("drugbank-plot").innerHTML = response.svg;
+                                }
+                            },
+                            error: function(error) {
+                                console.error("Failed to fetch DrugBank SVG:", error);
+                            }
+                        });
+                    }
+
+                    let axes = ["x", "y"];
+                    axes.forEach(function(axis) {
+                        console.log(axis);
+                        $(`#drugbank-${axis}-axis-selection`).on("keyup", function() {
+                            console.log("keyup");
+                            var value = $(this).val().toLowerCase();
+                            $(`.drugbank-${axis}-axis-item`).filter(function() {
+                                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                            });
+                        });
+
+                        $(`.drugbank-${axis}-axis-item`).click(function() {
+                            console.log("click");
+                            var task = $(this).text();
+                            clickDrugBank(task, axis);
+                        });
+                    });
+                });
+                </script>
+            </div>
+        {% endif %}
+
+        <br>
 
         {% if predicted %}
             <hr>
@@ -439,9 +445,9 @@
                     
                     <li class="index" data-index="{{ '%0.4f'|format(preds[smiles_index][0]) }}">
                         <div>
-                            <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}">
-                                <strong>Molecule {{ smiles_index + 1 }}: {{ smiles[smiles_index] }}  </strong>
-                                <div id="molecule-image{{ smiles_index }}" class="mol-image"></div>
+                            <button id="collapseButton{{ smiles_index }}" class="btn btn-link2" type="button" data-toggle="collapse" data-target="#collapseInfo{{ smiles_index }}" aria-expanded="false" aria-controls="collapseInfo{{ smiles_index }}" style="display: flex; align-items: center;">
+                                <strong style="font-size: x-large; text-wrap: balance;">Molecule {{ smiles_index + 1 }}: {{ smiles[smiles_index] }}  </strong>
+                                <div id="molecule-image{{ smiles_index }}" class="mol-image" style="margin-left: auto"></div>
                             </button>
                         </div>
 
