@@ -33,10 +33,10 @@ from werkzeug.utils import secure_filename
 from chemprop.web.app import app, db
 from chemprop.web.app.models import (
     compute_drugbank_percentile,
-    get_drugbank_dataframe,
+    get_drugbank,
     get_drugbank_unique_atc_codes,
     get_drugbank_tasks,
-    get_models_dict
+    get_models
 )
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
@@ -368,10 +368,10 @@ def predict_all_models(
     :return: A tuple containing a list of task names and a list of predictions (num_molecules, num_tasks).
     """
     # Get models dict with models and association information
-    models_dict = get_models_dict()
+    models = get_models()
 
     # Determine fingerprints use
-    uses_fingerprints_set = {model_dict["uses_fingerprints"] for model_dict in models_dict.values()}
+    uses_fingerprints_set = {model_dict["uses_fingerprints"] for model_dict in models}
     any_fingerprints_use = any(uses_fingerprints_set)
     all_fingerprints_use = all(uses_fingerprints_set)
 
@@ -415,7 +415,7 @@ def predict_all_models(
     all_preds = []
 
     # Loop through each ensemble and make predictions
-    for model_name, model_dict in tqdm(models_dict.items(), desc='model ensembles'):
+    for model_dict in tqdm(models, desc='model ensembles'):
         # Get task names
         all_task_names += model_dict['task_names']
 
@@ -522,7 +522,7 @@ def create_drugbank_reference_plot(
         atc_code = "all"
 
     # Get DrugBank reference, optionally filtered ATC code
-    drugbank = get_drugbank_dataframe(atc_code=atc_code)
+    drugbank = get_drugbank(atc_code=atc_code)
 
     # Scatter plot of DrugBank molecules with density coloring
     sns.scatterplot(

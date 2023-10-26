@@ -8,7 +8,7 @@ import os
 from tap import Tap  # pip install typed-argument-parser (https://github.com/swansonk14/typed-argument-parser)
 
 from chemprop.data import set_cache_graph, set_cache_mol
-from chemprop.web.app import app, db
+from chemprop.web.app import app, db, models
 from chemprop.web.utils import clear_temp_folder, set_root_folder
 
 
@@ -59,6 +59,11 @@ def setup_web(
     if no_cache:
         set_cache_graph(False)
         set_cache_mol(False)
+
+    # Load models and DrugBank
+    with app.app_context():
+        models.load_models()
+        models.load_drugbank()
 
 
 def chemprop_web() -> None:
