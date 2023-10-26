@@ -27,7 +27,6 @@ from rdkit.Chem.Crippen import MolLogP
 from rdkit.Chem.Descriptors import MolWt
 from rdkit.Chem.QED import qed
 from rdkit.Chem.rdMolDescriptors import CalcNumAtomStereoCenters, CalcNumHBA, CalcNumHBD, CalcTPSA
-from scipy.stats import gaussian_kde
 from tqdm import tqdm
 from werkzeug.utils import secure_filename
 
@@ -525,32 +524,26 @@ def create_drugbank_reference_plot(
     # Get DrugBank reference, optionally filtered ATC code
     drugbank = get_drugbank_dataframe(atc_code=atc_code)
 
-    # Compute density of DrugBank molecules
-    xy = np.vstack([drugbank[x_task], drugbank[y_task]])
-
-    try:
-        density = gaussian_kde(xy)(xy)
-    except np.linalg.LinAlgError:
-        density = None
-
     # Scatter plot of DrugBank molecules with density coloring
     sns.scatterplot(
         x=drugbank[x_task],
         y=drugbank[y_task],
-        hue=density,
         edgecolor=None,
-        palette="viridis",
-        legend=False,
+        label="DrugBank Approved" + (" (ATC filter)" if atc_code != "all" else ""),
     )
+
+    # Set input label
+    input_label = "Input Molecule" + ("s" if len(preds_df) > 1 else "")
 
     # Scatter plot of new molecules
     if len(preds_df) > 0:
         sns.scatterplot(
-            x=preds_df[x_task], y=preds_df[y_task], color="red", marker="*", s=200
+            x=preds_df[x_task], y=preds_df[y_task], color="red", marker="*", s=200,
+            label=input_label,
         )
 
     # Title
-    plt.title("New Molecules vs DrugBank Approved" + (f"\nATC = {atc_code}" if atc_code != "all" else ""))
+    plt.title(f"{input_label} vs DrugBank Approved" + (f"\nATC = {atc_code}" if atc_code != "all" else ""))
 
     # Save plot as svg to pass to frontend
     buf = io.BytesIO()
