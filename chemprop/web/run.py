@@ -31,11 +31,13 @@ def setup_web(
         root_folder: str | None = None,
         allow_checkpoint_upload: bool = False,
         max_molecules: int | None = None,
-        no_cache: bool = False
+        no_cache: bool = False,
+        secret_key: str = "f*3^iWiue*maS35MgYAJ"  # TODO: do not use this default secret key in production
 ) -> None:
     app.config['DEMO'] = demo
     app.config['ALLOW_CHECKPOINT_UPLOAD'] = allow_checkpoint_upload
     app.config['MAX_MOLECULES'] = max_molecules
+    app.secret_key = secret_key
 
     # Set up root folder and subfolders
     set_root_folder(

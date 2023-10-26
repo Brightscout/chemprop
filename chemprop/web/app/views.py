@@ -12,6 +12,7 @@ from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
 from typing import Callable, List, Tuple
+from uuid import uuid4
 
 import matplotlib
 matplotlib.use('Agg')
@@ -20,7 +21,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from chemfunc.molecular_fingerprints import compute_fingerprints
-from flask import json, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
+from flask import after_this_request, json, jsonify, redirect, render_template, request, Response, send_file, send_from_directory, session, url_for
 from rdkit import Chem
 from rdkit.Chem.Crippen import MolLogP
 from rdkit.Chem.Descriptors import MolWt
@@ -58,10 +59,7 @@ from chemprop.utils import create_logger, load_args
 
 TRAINING = 0
 PROGRESS = mp.Value('d', 0.0)
-PREDS_DF = pd.DataFrame()
-ATC_CODE = 'all'
-DRUGBANK_X_TASK = 'HIA_Hou'
-DRUGBANK_Y_TASK = 'ClinTox'
+USER_TO_PREDS = {}
 
 
 def check_not_demo(func: Callable) -> Callable:
@@ -502,9 +500,9 @@ def compute_physicochemical_properties(
 
 def create_drugbank_reference_plot(
         preds_df: pd.DataFrame,
-        x_task: str = 'HIA_Hou',
-        y_task: str = 'BBB_Martins',
-        atc_code: str = 'all'
+        x_task: str | None = None,
+        y_task: str | None = None,
+        atc_code: str | None = None
 ) -> str:
     """Creates a 2D scatter plot of the DrugBank reference set vs the new set of molecules on two tasks.
 
@@ -514,6 +512,16 @@ def create_drugbank_reference_plot(
     :param atc_code: The ATC code to filter the DrugBank reference set by.
     :return: A string containing the SVG of the plot.
     """
+    # Set default values
+    if x_task is None:
+        x_task = "HIA_Hou"
+
+    if y_task is None:
+        y_task = "ClinTox"
+
+    if atc_code is None:
+        atc_code = "all"
+
     # Get DrugBank reference, optionally filtered ATC code
     drugbank = get_drugbank_dataframe(atc_code=atc_code)
 
@@ -556,21 +564,19 @@ def create_drugbank_reference_plot(
 
 @app.route('/drugbank_plot', methods=['GET'])
 def drugbank_plot():
-    global ATC_CODE, DRUGBANK_X_TASK, DRUGBANK_Y_TASK
-
     # Get requested ATC code
-    ATC_CODE = request.args.get('atc_code', default=ATC_CODE, type=str)
+    session["atc_code"] = request.args.get('atc_code', default=session.get("atc_code"), type=str)
 
     # Get requested X and Y axes
-    DRUGBANK_X_TASK = request.args.get('x_task', default=DRUGBANK_X_TASK, type=str)
-    DRUGBANK_Y_TASK = request.args.get('y_task', default=DRUGBANK_Y_TASK, type=str)
+    session["drugbank_x_task"] = request.args.get('x_task', default=session.get("drugbank_x_task"), type=str)
+    session["drugbank_y_task"] = request.args.get('y_task', default=session.get("drugbank_y_task"), type=str)
 
     # Create DrugBank reference plot with ATC code
     drugbank_plot_svg = create_drugbank_reference_plot(
-        preds_df=PREDS_DF,
-        x_task=DRUGBANK_X_TASK,
-        y_task=DRUGBANK_Y_TASK,
-        atc_code=ATC_CODE
+        preds_df=USER_TO_PREDS.get(session["user_id"], pd.DataFrame()),
+        x_task=session["drugbank_x_task"],
+        y_task=session["drugbank_y_task"],
+        atc_code=session["atc_code"]
     )
 
     return jsonify({"svg": drugbank_plot_svg})
@@ -579,6 +585,10 @@ def drugbank_plot():
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
     """Renders the predict page and makes predictions if the method is POST."""
+    # Assign user ID to session
+    if "user_id" not in session:
+        session["user_id"] = uuid4().hex
+
     if request.method == 'GET':
         return render_predict()
 
@@ -590,18 +600,17 @@ def predict():
         # Upload data file with SMILES
         data = request.files['data']
         data_name = secure_filename(data.filename)
-        data_path = os.path.join(app.config['TEMP_FOLDER'], data_name)
-        data.save(data_path)
 
-        # Check if header is smiles
-        possible_smiles = get_header(data_path)[0]
-        smiles = [possible_smiles] if Chem.MolFromSmiles(possible_smiles) is not None else []
+        with TemporaryDirectory() as temp_dir:
+            data_path = os.path.join(temp_dir, data_name)
+            data.save(data_path)
 
-        # Get remaining smiles
-        smiles.extend(get_smiles(data_path))
+            # Check if header is smiles
+            possible_smiles = get_header(data_path)[0]
+            smiles = [possible_smiles] if Chem.MolFromSmiles(possible_smiles) is not None else []
 
-        # Delete data
-        os.remove(data_path)
+            # Get remaining smiles
+            smiles.extend(get_smiles(data_path))
 
     # Error if too many molecules
     if app.config['MAX_MOLECULES'] is not None and len(smiles) > app.config['MAX_MOLECULES']:
@@ -635,11 +644,12 @@ def predict():
 
         preds_dicts.append(preds_dict)
 
-    # TODO: Delete predictions when no longer needed
-    # TODO: Check if this works for multiple users at once when using same predictions filename
-    global PREDS_DF
-    PREDS_DF = pd.DataFrame(preds_dicts)
-    PREDS_DF.to_csv(os.path.join(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME']))
+    # Convert predictions to DataFrame
+    preds_df = pd.DataFrame(preds_dicts)
+
+    # Store predictions in memory
+    # TODO: figure out how to remove predictions from memory once no longer needed (i.e., once session ends)
+    USER_TO_PREDS[session["user_id"]] = preds_df
 
     # Handle invalid SMILES
     if all(p is None for p in preds):
@@ -651,10 +661,10 @@ def predict():
 
     # Create DrugBank reference plot
     drugbank_plot_svg = create_drugbank_reference_plot(
-        preds_df=PREDS_DF,
-        x_task=DRUGBANK_X_TASK,
-        y_task=DRUGBANK_Y_TASK,
-        atc_code=ATC_CODE
+        preds_df=USER_TO_PREDS[session["user_id"]],
+        x_task=session.get("drugbank_x_task"),
+        y_task=session.get("drugbank_y_task"),
+        atc_code=session.get("atc_code")
     )
 
     cat_file = 'chemprop/web/app/categoryData.csv'
@@ -691,9 +701,19 @@ def predict():
 
 
 @app.route('/download_predictions')
-def download_predictions():
+def download_predictions() -> Response:
     """Downloads predictions as a .csv file."""
-    return send_from_directory(app.config['TEMP_FOLDER'], app.config['PREDICTIONS_FILENAME'], as_attachment=True)
+    preds_file = NamedTemporaryFile()
+
+    @after_this_request
+    def remove_file(response: Response) -> Response:
+        preds_file.close()
+        return response
+
+    USER_TO_PREDS.get(session["user_id"], pd.DataFrame()).to_csv(preds_file.name, index=False)
+    preds_file.seek(0)
+
+    return send_file(preds_file.name, as_attachment=True, download_name='predictions.csv')
 
 
 #@app.route('/data')
